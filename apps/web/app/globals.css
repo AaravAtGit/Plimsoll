@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #fafaf7;
+  --color-ink: #0a0a0a;
+  --color-signal: #d71921;
+  --color-enclave: #050505;
+  --color-enclave-dot: #1e1e1e;
+
+  --font-doto: "Doto", "IBM Plex Mono", ui-monospace, monospace;
+  --font-grotesk: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --animate-marquee: marquee 36s linear infinite;
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* StarBorder: a rotating red arc masked to a 1.5px border ring */
+@property --star-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes star-spin {
+  to {
+    --star-angle: 360deg;
+  }
+}
+
+.star-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--star-angle),
+    transparent 0deg,
+    transparent 295deg,
+    var(--color-signal) 340deg,
+    transparent 360deg
+  );
+  animation: star-spin 3.5s linear infinite;
+  padding: 1.5px;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ShinyText: a sheen sweeping across display text */
+@keyframes shine {
+  to {
+    background-position: -250% center;
+  }
+}
+
+.shiny-text {
+  background: linear-gradient(
+    110deg,
+    currentColor 38%,
+    rgba(250, 250, 247, 0.95) 50%,
+    currentColor 62%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine 3.4s linear infinite;
+}
+
+/* static dot texture for dark sections (no canvas) */
+.dot-bg-static {
+  background-image: radial-gradient(
+    circle,
+    var(--color-enclave-dot) 1px,
+    transparent 1px
+  );
+  background-size: 26px 26px;
+}
+
+.dot-bg-static-paper {
+  background-image: radial-gradient(
+    circle,
+    rgba(10, 10, 10, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 26px 26px;
+}
+
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper font-grotesk text-ink antialiased;
+  }
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-paper);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .star-ring,
+  .shiny-text,
+  .animate-marquee,
+  .animate-pulse-dot {
+    animation: none !important;
+  }
+}
