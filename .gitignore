@@ -1,0 +1,32 @@
+# node
+node_modules/
+.pnpm-store/
+
+# next
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# env
+.env
+.env.local
+.env*.local
+
+# editors / os
+.DS_Store
+*.swp
+
+# vendored skills (restore with the skills CLI from skills-lock.json)
+.agents/skills/
+
+# foundry deps (restore with: forge install)
+contracts/lib/
+
+# local claude settings
+.claude/settings.local.json
