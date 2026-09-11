@@ -1,0 +1,17 @@
+{
+  "name": "plimsoll",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.20.0",
+  "description": "The load line for autonomous agents. Proof of enough, not proof of how much.",
+  "scripts": {
+    "dev:web": "pnpm --filter plimsoll-web dev",
+    "dev:gateway": "pnpm --filter plimsoll-gateway dev",
+    "build": "pnpm --filter plimsoll-web build",
+    "typecheck": "pnpm -r typecheck",
+    "contracts:build": "forge build --root contracts",
+    "contracts:test": "forge test --root contracts -vv",
+    "contracts:fmt": "forge fmt --root contracts",
+    "abi": "bash scripts/gen-abi.sh"
+  }
+}
