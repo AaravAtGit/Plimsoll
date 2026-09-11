@@ -18,7 +18,7 @@ info:
     exposure implies. `plimsoll-survey` requests a Survey at that Line and returns the Mark. The
     threshold tested by the second is computed from the output of the first.
 servers:
-  - url: https://gateway.plimsoll.xyz
+  - url: https://plimsoll.xyz/api
     description: Set this to your deployed gateway before registering with Bazantic.
 
 tags:
