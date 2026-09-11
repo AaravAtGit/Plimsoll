@@ -1,7 +1,7 @@
 import {type Address, type Hex, decodeEventLog} from "viem";
-import {publicClient, walletClient} from "../chain.js";
-import {env} from "../env.js";
-import {plimsollRegistryAbi} from "../abi/plimsollRegistry.js";
+import {publicClient, walletClient} from "@/server/chain";
+import {env} from "@/server/env";
+import {plimsollRegistryAbi} from "@/server/abi/plimsollRegistry";
 
 /// Bazantic service 2: `plimsoll-survey`.
 ///

@@ -2,16 +2,32 @@
   "name": "plimsoll",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@11.20.0",
   "description": "The load line for autonomous agents. Proof of enough, not proof of how much.",
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "dev:web": "pnpm --filter plimsoll-web dev",
-    "dev:gateway": "pnpm --filter plimsoll-gateway dev",
-    "build": "pnpm --filter plimsoll-web build",
-    "typecheck": "pnpm -r typecheck",
+    "dev": "next dev --port 5199",
+    "build": "next build",
+    "start": "next start --port 5199",
+    "typecheck": "tsc --noEmit",
     "contracts:build": "forge build --root contracts",
     "contracts:test": "forge test --root contracts -vv",
     "contracts:fmt": "forge fmt --root contracts",
     "abi": "bash scripts/gen-abi.sh"
+  },
+  "dependencies": {
+    "lucide-react": "^0.544.0",
+    "motion": "^12.23.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^20.17.6",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.6.2"
   }
 }

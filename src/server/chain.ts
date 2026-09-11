@@ -1,6 +1,6 @@
 import {createPublicClient, createWalletClient, http} from "viem";
 import {sepolia} from "viem/chains";
-import {env, gatewayAccount} from "./env.js";
+import {env, gatewayAccount} from "@/server/env";
 
 export const publicClient = createPublicClient({
   chain: sepolia,

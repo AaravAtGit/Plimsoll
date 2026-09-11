@@ -1,6 +1,6 @@
 import {type Address, parseAbi} from "viem";
-import {publicClient} from "../chain.js";
-import {env} from "../env.js";
+import {publicClient} from "@/server/chain";
+import {env} from "@/server/env";
 
 /// Bazantic service 1: `chainlink-price`.
 ///
