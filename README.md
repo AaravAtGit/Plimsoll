@@ -11,23 +11,29 @@ ETHOnline 2026 · Start Fresh · Targeting **Chainlink — Best Confidential Wor
 
 ## 0. The repository
 
-A pnpm workspace plus a Foundry project. One repo, one submission.
+One Next.js app plus a Foundry project. One repo, one deploy, one submission.
 
 ```
 plimsoll/
-├── apps/
-│   ├── web/            C9  Next.js 15 - landing page, protocol dashboard, guide
-│   └── gateway/        C4  Hono + viem - the HTTP surface Bazantic fronts
+├── app/                C9  Next.js 15 App Router - landing page, dashboard, guide
+│   └── api/            C4  Route handlers over viem - the surface Bazantic fronts
 │                           C8 `chainlink-price` lives here too, as /price and /line-for
+├── src/
+│   ├── components/         The bits library, dashboard and guide
+│   ├── sections/           Landing-page sections
+│   └── server/             Chain reads, the price and survey services, typed ABIs
 ├── contracts/          C1  Foundry - PlimsollRegistry, C6 CreditDesk
 ├── bazantic/           C5  Recipes, registration guide (see bazantic/README.md)
 ├── docs/                   The landing-page design brief
-└── scripts/                gen-abi.sh - contracts -> gateway typed ABIs
+└── scripts/                gen-abi.sh - contracts -> src/server/abi
 ```
 
+The API is not a separate service. It is route handlers in the same Next app, so there is one
+`pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
+
 Still unbuilt: **C2** the CRE Survey workflow (`handlerInTee`), **C3** the Hold adapters,
-**C7** the demo agents, **C10** the A/B clip. The dashboard in `apps/web` currently drives itself
-from local state rather than from chain reads.
+**C7** the demo agents, **C10** the A/B clip. The dashboard in `app/dashboard` currently drives
+itself from local state rather than from chain reads.
 
 ### Quickstart
 
@@ -38,12 +44,9 @@ pnpm install
 pnpm contracts:test          # 38 tests
 pnpm contracts:build
 
-# gateway - needs a deployed registry address
-cp apps/gateway/.env.example apps/gateway/.env
-pnpm dev:gateway             # :8402
-
-# web
-pnpm dev:web                 # :5199
+# web + API - needs a deployed registry address
+cp .env.example .env.local
+pnpm dev                     # :5199, the API under /api
 ```
 
 Deploying the contracts, and the one deliberate deviation from the `hasStanding` spec below, are

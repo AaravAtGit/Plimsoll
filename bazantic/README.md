@@ -11,16 +11,16 @@ correctly, at the correct time, on its own initiative.
 
 | | |
 | --- | --- |
-| `../apps/gateway/` | The HTTP service Bazantic fronts. Plain, unauthenticated, testable. |
-| `../apps/gateway/openapi.yaml` | The spec to hand Bazantic when registering the gateway. |
+| `../app/api/` | The HTTP surface Bazantic fronts. Plain, unauthenticated, testable. |
+| `../openapi.yaml` | The spec to hand Bazantic when registering the gateway. |
 | `recipes/request_mark.md` | The primitive. One Survey, one verdict, and the rules for reading it. |
 | `recipes/underwrite_counterparty.md` | The composed two-service flow. **This is the one submitted for the track.** |
 
 ## Payment lives in exactly one place
 
-The gateway implements **no** x402 middleware, deliberately. Bazantic creates the x402/MPP
+The route handlers implement **no** x402 middleware, deliberately. Bazantic creates the x402/MPP
 gateway for our API and enforces the paywall there. Two paywalls is one more than the number
-that can be correct — if payment logic starts appearing in `apps/gateway/`, something has gone wrong.
+that can be correct — if payment logic starts appearing in `app/api/`, something has gone wrong.
 
 Every Survey costs real money (exchange API calls, RPC, Sepolia gas), so it has to be paid per
 request by whoever benefits. That is what x402 is for. Note that the fee is **not** the privacy
@@ -49,9 +49,10 @@ twice.
 
 ## Steps
 
-1. Deploy `apps/gateway/` somewhere public. Set `PLIMSOLL_REGISTRY` to the deployed registry address.
-2. On bazantic.com, create an **x402/MPP gateway** for the deployed URL, using
-   `apps/gateway/openapi.yaml` as the spec.
+1. Deploy the app (Vercel). The API rides along at `<origin>/api`. Set `PLIMSOLL_REGISTRY` to the
+   deployed registry address.
+2. On bazantic.com, create an **x402/MPP gateway** for `<origin>/api`, using `../openapi.yaml`
+   as the spec.
 3. Expose the two services above as separate tool groups so an agent sees them as two.
 4. Publish both Recipes.
 5. Generate the MCP server and verify an agent can complete a decision from a bare client.
