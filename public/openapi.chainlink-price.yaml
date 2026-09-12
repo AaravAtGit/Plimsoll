@@ -10,7 +10,7 @@ info:
     is computed from this service's output: move the ETH price and the derived Line moves, the
     selected rung can change, and the underwriting decision can flip.
 servers:
-  - url: https://plimsoll.vercel.app/api
+  - url: https://plimsol-xi.vercel.app/api
     description: Must match the --endpoint passed to `baz gateway add`.
 
 paths:

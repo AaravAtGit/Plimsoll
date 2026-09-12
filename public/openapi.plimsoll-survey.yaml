@@ -15,7 +15,7 @@ info:
     bound to this subject, queried at time T with credentials the subject provisioned, reported
     holdings satisfying Line L.
 servers:
-  - url: https://plimsoll.vercel.app/api
+  - url: https://plimsol-xi.vercel.app/api
     description: Must match the --endpoint passed to `baz gateway add`.
 
 paths:

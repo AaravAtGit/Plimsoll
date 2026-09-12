@@ -32,3 +32,8 @@ contracts/lib/
 .claude/settings.local.json
 .claude/skills/
 CHECKLIST.md 
+
+# vercel
+.vercel/
+.vercel
+.env*
