@@ -33,11 +33,11 @@ plimsoll/
 The API is not a separate service. It is route handlers in the same Next app, so there is one
 `pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
 
-**C2** simulates end to end against a real Sepolia `requestSurvey` transaction. Every Survey
-ends INDETERMINATE until **C3** serves the Hold - the designed failure, not a broken workflow.
-See [`cre/README.md`](cre/README.md).
+**C2 + C3** run end to end in simulation against a real Sepolia `requestSurvey` transaction
+and return a real verdict (ABOVE on the $50 rung, from a wallet-read Hold at a live Chainlink
+price). See [`cre/README.md`](cre/README.md).
 
-Still unbuilt: **C3** the Hold adapters, **C7** the demo agents, **C9** the dashboard, **C10**
+Still unbuilt: **C7** the demo agents, **C9** the dashboard, **C10**
 the A/B clip. There is no dashboard route: the one that existed drove itself entirely from
 hardcoded state, showing Marks that had never been surveyed, and was removed rather than left
 to imply otherwise.
@@ -186,8 +186,8 @@ CreditDesk.sol reads Standing → disburses or refuses
 | # | Component | Stack | Status |
 | --- | --- | --- | --- |
 | C1 | `PlimsollRegistry.sol` | Solidity, Ethereum Sepolia | Must have |
-| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Simulates end to end; INDETERMINATE until C3 |
-| C3 | Hold adapters | One real CEX read-only key, one real wallet read | Must have |
+| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Simulates end to end with a real verdict |
+| C3 | Hold adapters | Wallet read behind a shared key (`/api/hold`); CEX key is a follow-up | Built |
 | C4 | Plimsoll API | Thin HTTP service: trigger Survey, read Marks | Must have |
 | C5 | Bazantic gateway + MCP + 2 Recipes | bazantic.com | Must have |
 | C6 | `CreditDesk.sol` | Consumer contract that refuses to lend without valid Standing | Must have |

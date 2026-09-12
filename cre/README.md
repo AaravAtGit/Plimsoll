@@ -102,11 +102,11 @@ arithmetic:
 
 ## Where it stands
 
-The Survey **simulates end to end against a real Sepolia `SurveyRequested` transaction**:
-trigger decode, the TEE handler, the Vault secret, the ladder over HTTP, the Hold read, the
-verdict, the report, and `writeReport`. Until the C3 Hold adapter exists at
-`{holdBaseUrl}/hold/{subjectId}`, that read 404s and every Survey ends INDETERMINATE - which
-is the designed failure, not a broken workflow.
+The Survey **simulates end to end against a real Sepolia `SurveyRequested` transaction and
+returns a real verdict**: trigger decode, the TEE handler, the Vault secret, the ladder over
+HTTP, the Hold read (C3, a wallet balance behind a shared key), the Chainlink price, the
+haircut valuation, the threshold, the report, and `writeReport`. First verified 2026-09-13:
+`verdict 1` (ABOVE) on the $50 rung from a ~0.037 ETH Hold at ETH/USD ≈ $2,520.
 
 ```bash
 # one request tx can be replayed through the simulator indefinitely: a non-broadcast run
