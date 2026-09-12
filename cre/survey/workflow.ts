@@ -74,20 +74,20 @@ function decodeRequest(event: EVMLog): SurveyRequest {
   return {surveyId, subjectId, lineId: Number(lineId)};
 }
 
+const toRequest = (req: Parameters<Fetch>[0]) => ({
+  url: req.url,
+  method: req.method,
+  ...(req.headers
+    ? {multiHeaders: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, {values: [v]}]))}
+    : {}),
+});
+
 /// Bind a fetcher to the enclave. Requests issued through this execute from inside the TEE, so
 /// the Hold credential and the balance sheet it unlocks never reach a node operator.
 const enclaveFetch =
   (runtime: TeeRuntime<Config>): Fetch =>
   (req) => {
-    const response = new HTTPClient()
-      .sendRequest(runtime, {
-        url: req.url,
-        method: req.method,
-        multiHeaders: req.headers
-          ? Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, {values: [v]}]))
-          : undefined,
-      })
-      .result();
+    const response = new HTTPClient().sendRequest(runtime, toRequest(req)).result();
     // The status code is not in the message on purpose: an upstream that encodes anything about
     // the Hold in its status line would otherwise have a channel out of the enclave.
     if (!ok(response)) throw new Indeterminate("upstream request failed");
@@ -97,15 +97,7 @@ const enclaveFetch =
 const nodeFetch =
   (runtime: NodeRuntime<Config>): Fetch =>
   (req) => {
-    const response = new HTTPClient()
-      .sendRequest(runtime, {
-        url: req.url,
-        method: req.method,
-        multiHeaders: req.headers
-          ? Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, {values: [v]}]))
-          : undefined,
-      })
-      .result();
+    const response = new HTTPClient().sendRequest(runtime, toRequest(req)).result();
     if (!ok(response)) throw new Indeterminate("upstream request failed");
     return jsonBody(response);
   };
