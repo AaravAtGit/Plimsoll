@@ -8,7 +8,7 @@ import { LoadDisc } from "../components/LoadLine";
 
 const LINKS = [
   { label: "PROTOCOL GUIDE", href: "/guide" },
-  { label: "REGISTRY ON SEPOLIA", href: "https://sepolia.etherscan.io" },
+  { label: "REGISTRY ON SEPOLIA", href: "https://sepolia.etherscan.io/address/0xDE76042288d04539B9e18dc1C355219567B88447" },
   { label: "SOURCE", href: "https://github.com/AaravAtGit/plimsoll" },
 ];
 

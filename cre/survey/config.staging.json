@@ -2,7 +2,7 @@
   "confidential": true,
   "debug": false,
   "chainSelectorName": "ethereum-testnet-sepolia",
-  "registryAddress": "0x0000000000000000000000000000000000000000",
+  "registryAddress": "0xDE76042288d04539B9e18dc1C355219567B88447",
   "apiBaseUrl": "http://localhost:5199",
   "holdBaseUrl": "http://localhost:5199/api/hold",
   "holdSecretId": "PLIMSOLL_HOLD_KEY",

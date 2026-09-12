@@ -17,11 +17,15 @@ forge build
 forge test -vv
 forge fmt
 
-# deploy
-export PRIVATE_KEY=0x...
-export SEPOLIA_RPC_URL=https://...
-forge script script/Deploy.s.sol --rpc-url sepolia --broadcast --verify
+# deploy - the key lives in Foundry's encrypted keystore, never in a file or an env var
+cast wallet import deployer --interactive        # once: prompts for the key and a password
+forge script script/Deploy.s.sol \
+  --rpc-url https://ethereum-sepolia-rpc.publicnode.com --account deployer --broadcast
 ```
+
+`--interactive` reads the key from a hidden prompt, so it never lands in shell history. The
+keystore file is encrypted under `~/.foundry/keystores/`; `forge script` asks for the password
+at broadcast time.
 
 `via_ir` is on — `hasStanding` overflows the stack without it. Note the consequence for tests:
 `vm.warp(block.timestamp + n)` is **unsafe**, because the optimizer reuses a stale `TIMESTAMP`

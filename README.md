@@ -33,9 +33,9 @@ plimsoll/
 The API is not a separate service. It is route handlers in the same Next app, so there is one
 `pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
 
-**C2** is written but not yet run: the `cre` CLI and Bun are not installed here, so the policy
-layer is covered by unit tests and the workflow itself has never been compiled or simulated. The
-first `cre workflow simulate` is the real test. See [`cre/README.md`](cre/README.md).
+**C2** typechecks and compiles to WASM against the real SDK, but has not run end to end: the
+EVM log trigger needs a real `requestSurvey` transaction, which needs a deployed registry.
+See [`cre/README.md`](cre/README.md).
 
 Still unbuilt: **C3** the Hold adapters, **C7** the demo agents, **C9** the dashboard, **C10**
 the A/B clip. There is no dashboard route: the one that existed drove itself entirely from
@@ -44,6 +44,16 @@ to imply otherwise.
 
 Before writing more code, work through [`CHECKLIST.md`](CHECKLIST.md): every account, wallet,
 tool and decision that only a human can supply, and which code step each one unblocks.
+
+### Deployed - Ethereum Sepolia
+
+| | Address |
+| --- | --- |
+| `PlimsollRegistry` | [`0xDE76042288d04539B9e18dc1C355219567B88447`](https://sepolia.etherscan.io/address/0xDE76042288d04539B9e18dc1C355219567B88447) |
+| `CreditDesk` | [`0xf7F8332277D023c34d25F8aB51821942585D9aAB`](https://sepolia.etherscan.io/address/0xf7F8332277D023c34d25F8aB51821942585D9aAB) |
+| `DemoUSD` | [`0x56ADc48076AB73a0f6ef664a3A3C03e9fAe8B398`](https://sepolia.etherscan.io/address/0x56ADc48076AB73a0f6ef664a3A3C03e9fAe8B398) |
+| Forwarder | `0x15fC6ae953E024d975e77382eEeC56A9101f9F88` - the **simulation** MockKeystoneForwarder, by design (see contracts/README.md) |
+| Subject | `agent-solv-alpha.eth` = `0x61335871890d6e0c866ec4743b63b48d546c6c9d8acac9344c5787fbdec34838` |
 
 ### Quickstart
 
@@ -176,7 +186,7 @@ CreditDesk.sol reads Standing → disburses or refuses
 | # | Component | Stack | Status |
 | --- | --- | --- | --- |
 | C1 | `PlimsollRegistry.sol` | Solidity, Ethereum Sepolia | Must have |
-| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Written, unsimulated |
+| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Compiles; simulation awaits a deployed registry |
 | C3 | Hold adapters | One real CEX read-only key, one real wallet read | Must have |
 | C4 | Plimsoll API | Thin HTTP service: trigger Survey, read Marks | Must have |
 | C5 | Bazantic gateway + MCP + 2 Recipes | bazantic.com | Must have |

@@ -27,7 +27,7 @@ The workflow needs the `cre` CLI and Bun; the policy tests need neither.
 pnpm cre:test                    # 14 tests, plain node, no CRE toolchain
 
 # simulation
-cd cre/survey && bun install && bunx cre-setup && cd ../..
+cd cre/survey && bun install && bunx tsc --noEmit && cd ../..
 cp cre/.env.example cre/.env     # fill in PLIMSOLL_HOLD_KEY_VAR
 pnpm dev                         # :5199 - serves /api/ladder and /api/price
 
@@ -100,12 +100,26 @@ arithmetic:
 | `the comparator is ordered, so one Mark serves any exposure it covers` | Why `Line` is a struct and not a hash. |
 | `D2: a stale feed is indeterminate` | Testnet feeds go stale constantly, and staleness is judged on the *oldest* input. |
 
+## Where it stands
+
+The workflow **typechecks and compiles to WASM** against `@chainlink/cre-sdk@1.18.0`
+(`cre workflow simulate` prints `Workflow compiled` and a binary hash). A full simulation has
+not run yet: the EVM log trigger needs a real `requestSurvey` transaction hash, which needs a
+deployed registry. That is the next thing to unblock, and it is a deploy step, not a code step.
+
+Three things learned on first compile, kept here so nobody relearns them:
+
+- **Pin the SDK.** `@chainlink/cre-sdk@latest` (1.21.0) is unpublishable as shipped - it
+  declares `@chainlink/cre-sdk-javy-plugin: workspace:*` and `bun install` fails. `1.18.0` is
+  what the official `hello-confidential-workflows-ts` template pins, and it works.
+- **`project.yaml` uses `rpcs:` keyed by `chain-name`,** not `evms:` keyed by chain selector,
+  on CLI v1.33. The scaffold here was diffed against `cre init`'s output and matches it.
+- **The EVM log trigger is a method on `EVMClient`:**
+  `evmClient.logTrigger(logTriggerConfig({addresses, topics, confidence}))`, and the payload is
+  `EVMLog` with byte-array fields. There is no `EVMLogCapability`.
+
 ## Known gaps
 
-- **Nothing here has been compiled or simulated.** The `cre` CLI and Bun are not installed on
-  this machine, so `policy.ts` is verified by unit test and the rest is verified by reading. The
-  first `cre workflow simulate` is the real test; expect to correct SDK details in `workflow.ts`,
-  most likely the EVM log payload field names and the DON-mode consensus aggregators.
 - **Only ETH and BTC are allowlisted**, because `FEEDS` in `src/server/services/price.ts` knows
   only those two pairs. A stablecoin leg needs its Sepolia feed added there first — until then a
   Hold holding USDC returns INDETERMINATE, which is the honest failure but a poor demo.

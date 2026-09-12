@@ -10,11 +10,11 @@ import {PlimsollTypes} from "../src/PlimsollTypes.sol";
 /// @notice Deploys the registry, a demo stablecoin and a CreditDesk, then allowlists the
 ///         source set the Survey workflow commits to.
 ///
-/// Usage:
-///   forge script script/Deploy.s.sol --rpc-url sepolia --broadcast --verify
+/// Usage - the deployer key lives in Foundry's encrypted keystore, never in a file or env var:
+///   cast wallet import deployer --interactive          # once; prompts for the key + a password
+///   forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --account deployer --broadcast
 ///
 /// Env:
-///   PRIVATE_KEY        deployer key
 ///   CRE_FORWARDER      optional; defaults to the Ethereum Sepolia KeystoneForwarder
 ///   SOURCE_SET_HASH    optional; defaults to keccak256("plimsoll-sources-v1")
 contract Deploy is Script {
@@ -24,12 +24,14 @@ contract Deploy is Script {
     address constant SEPOLIA_FORWARDER = 0xF8344CFd5c43616a4366C34E3EEE75af79a74482;
 
     function run() external {
-        uint256 pk = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(pk);
         address forwarder = vm.envOr("CRE_FORWARDER", SEPOLIA_FORWARDER);
         bytes32 sourceSet = vm.envOr("SOURCE_SET_HASH", keccak256("plimsoll-sources-v1"));
 
-        vm.startBroadcast(pk);
+        // No key argument: the broadcaster comes from `--account <keystore name>` on the CLI.
+        // Read it back with `readCallers` - `msg.sender` here is the script's own caller, not
+        // the broadcaster, and using it hands the registry to the wrong owner.
+        vm.startBroadcast();
+        (, address deployer,) = vm.readCallers();
 
         PlimsollRegistry registry = new PlimsollRegistry(forwarder, deployer);
         registry.setSourceSet(sourceSet, true);
