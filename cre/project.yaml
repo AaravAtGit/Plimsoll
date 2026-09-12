@@ -1,0 +1,13 @@
+# CRE project for the Plimsoll Survey workflow.
+#
+# The chain name is what `getNetwork()` resolves inside the workflow; the RPC is what the EVM
+# Log trigger polls and what `writeReport` broadcasts through. Both legs run on the Workflow
+# DON, never inside the enclave - chain reads and writes are outside the boundary.
+staging-settings:
+    rpcs:
+        - chain-name: ethereum-testnet-sepolia
+          url: https://ethereum-sepolia-rpc.publicnode.com
+production-settings:
+    rpcs:
+        - chain-name: ethereum-testnet-sepolia
+          url: https://ethereum-sepolia-rpc.publicnode.com

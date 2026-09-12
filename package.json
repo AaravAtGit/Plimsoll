@@ -12,6 +12,7 @@
     "contracts:build": "forge build --root contracts",
     "contracts:test": "forge test --root contracts -vv",
     "contracts:fmt": "forge fmt --root contracts",
+    "cre:test": "node --test cre/survey/policy.test.ts",
     "abi": "bash scripts/gen-abi.sh"
   },
   "dependencies": {

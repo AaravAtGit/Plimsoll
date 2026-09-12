@@ -1,0 +1,69 @@
+{
+  "name": "Underwrite Counterparty",
+  "description": "Decide whether to extend net terms to a counterparty agent without either side disclosing a balance. Prices the exposure at a Chainlink feed, derives the Line it implies from the subject's registered ladder, requests one confidential Survey at that Line, and returns the verdict with its derivation. Refuses on BELOW/INDETERMINATE and never probes a lower rung.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "subjectId",
+      "amount",
+      "pair"
+    ],
+    "properties": {
+      "subjectId": {
+        "type": "string",
+        "title": "Subject ID",
+        "pattern": "^0x[0-9a-fA-F]{64}$",
+        "description": "The bytes32 subject identity of the agent being underwritten."
+      },
+      "amount": {
+        "type": "number",
+        "title": "Exposure amount",
+        "description": "The exposure denominated in the pair's base asset, e.g. 60 for 60 ETH."
+      },
+      "pair": {
+        "type": "string",
+        "title": "Price pair",
+        "description": "Chainlink pair the exposure is denominated in, e.g. ETH/USD."
+      },
+      "term": {
+        "type": "string",
+        "title": "Settlement term",
+        "description": "Free text, e.g. net-30. Reported, not evaluated."
+      },
+      "requireStanding": {
+        "type": "boolean",
+        "title": "Require Standing",
+        "description": "Also require k=3 Surveys spanning 24h at the derived threshold. Use for exposure you would be unhappy to lose."
+      }
+    },
+    "additionalProperties": false
+  },
+  "input_example": {
+    "subjectId": "0xabababababababababababababababababababababababababababababababab",
+    "amount": 60,
+    "pair": "ETH/USD",
+    "term": "net-30",
+    "requireStanding": false
+  },
+  "output_example": "Derivation: ETH/USD 4100.00 (round 18446744073709562345, 41s old, not stale). Exposure 60 ETH = $246,000. Lowest covering rung: lineId 1, observed_net_assets_usd >= $250,000. Survey 0x5d1c...e0a2 requested; Mark settled after 38s.\n\n```json\n{\"decision\":\"EXTEND\",\"verdict\":\"ABOVE\",\"exposureUsd\":246000,\"lineId\":1,\"thresholdUsd\":250000,\"surveyId\":\"0x5d1c...e0a2\",\"asOf\":1757000000,\"expiry\":1757000300,\"explorer\":\"https://sepolia.etherscan.io/tx/0x...\"}\n```",
+  "prompt_template": "You are underwriting a counterparty agent. Follow these instructions exactly.\n\n## When to use this\n\nA counterparty agent has proposed a deal denominated in a volatile asset and wants delivery\nbefore payment. You need to size the credit risk in USD and decide.\n\nWorked example, and the one the demo runs:\n\n> A buyer agent wants **60 ETH of GPU-hours on net-30**. Extend it?\n\nYou cannot answer that without a price. 60 ETH is not a credit limit; $145,000 is. And you\ncannot get the price from the buyer, because the buyer is the party you are underwriting.\n\n## Why two services\n\nNeither service answers the question alone, and the second depends on the output of the first:\n\n1. **`chainlink-price`** turns the deal's denomination into a USD exposure at an oracle price\n   the counterparty cannot influence.\n2. **`plimsoll-survey`** tests whether the counterparty clears a Line \u2014 *and the Line's\n   threshold is computed from step 1's output.*\n\nMove the ETH price and the derived Line moves with it. Move it far enough and the selected rung\nchanges, and the decision can flip. That is the data dependency, and it is not contrived: an\nagent quoting a deal in ETH genuinely needs a price to size a USD credit line.\n\n## Steps\n\n1. **Read the deal.** Extract the exposure amount and its denomination \u2014 `60`, `ETH` \u2014 and the\n   settlement term. Get the counterparty's `subjectId`.\n\n2. **Derive the Line.** Call `deriveLine(pair=\"ETH/USD\", amount=60, subjectId=...)`.\n\n   This prices the exposure and selects the lowest registered rung that covers it, in one call,\n   so the arithmetic is auditable rather than reconstructed.\n\n   Check three things in the response:\n   - `quote.stale` \u2014 if true, the oracle round is older than the staleness guard. Do not\n     underwrite off a stale price. Stop and report why.\n   - `exposureUsd` \u2014 sanity-check it against the deal. This is your real credit risk.\n   - `line` \u2014 if `null`, no registered rung covers this exposure. **Decline.** Do not ask at a\n     lower rung; see `request_mark`.\n\n3. **Request the Survey.** Call `requestSurvey({subjectId, lineId: line.lineId})`. This is the\n   paid call. Keep the returned `surveyId`.\n\n4. **Poll for the Mark.** Call `getMark(surveyId)` every ~10s until it returns 200. Give up after\n   120 seconds and treat the outcome as `INDETERMINATE`.\n\n5. **Decide.**\n\n   | Condition | Decision |\n   | --- | --- |\n   | `verdict == ABOVE` and `expiry` in the future | Extend the terms. |\n   | `verdict == BELOW` | Decline, or re-quote fully collateralised. |\n   | `verdict == INDETERMINATE` | Decline. Not a soft yes. |\n   | `expiry` already passed | Do not act. Request a fresh Survey. |\n\n   For exposure you would be unhappy to lose, require Standing rather than a single Mark:\n   `hasStanding(subjectId, thresholdUsd=line.thresholdUsd, k=3, window=86400)`. Three Surveys\n   across a day cannot be flash-funded.\n\n## Rules that are not optional\n\n- **Never ask at a lower Line after a `BELOW`.** Binary-searching a private balance sheet is the\n  one thing this protocol exists to prevent, and doing it is a defection against the subject\n  that consented to answer you. Rate limits will stop you; do not make them have to.\n- **Never treat `INDETERMINATE` as a weak yes.** It exists precisely so that \"the exchange API\n  was down\" is distinguishable from \"insolvent\". Collapsing them destroys that.\n- **Never underwrite off a stale price.** A wrong price yields a wrong Line, and a wrong Line\n  yields a confidently wrong decision.\n- **Report the derivation, not just the verdict.** When you explain your decision, state the\n  price, the exposure, the Line selected, and the verdict. A bare \"declined\" is not auditable.\n\n## What you are relying on when you say yes\n\nBe precise about this, because `ABOVE` is narrower than it sounds. It attests:\n\n> These allowlisted data sources, bound to this subject, queried at `asOf` with credentials the\n> subject provisioned, reported holdings which \u2014 valued at Chainlink prices at `asOf`, after\n> published haircuts \u2014 satisfied Line L.\n\nIt is not a solvency guarantee, not a credit score, and not a promise about the future. It does\nnot see off-balance-sheet obligations, and it cannot tell you whether the same assets have been\npledged to someone else. Size your exposure accordingly.\n\n## Inputs\n\n{{inputs}}\n\nReport the derivation, then the decision, then the JSON block described in the output format.",
+  "model": "REPLACE_ME",
+  "tool_bindings": [
+    {
+      "gateway_slug": "REPLACE_ME:chainlink-price",
+      "tool_name": "deriveLine"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "requestSurvey"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "getMark"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "hasStanding"
+    }
+  ]
+}

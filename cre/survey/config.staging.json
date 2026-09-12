@@ -1,0 +1,40 @@
+{
+  "confidential": true,
+  "debug": false,
+  "chainSelectorName": "ethereum-testnet-sepolia",
+  "registryAddress": "0x0000000000000000000000000000000000000000",
+  "apiBaseUrl": "http://localhost:5199",
+  "holdBaseUrl": "http://localhost:5199/api/hold",
+  "holdSecretId": "PLIMSOLL_HOLD_KEY",
+  "priceMaxAgeSeconds": 3600,
+  "markTtlSeconds": 300,
+  "sourceSetId": "plimsoll-sources-v1",
+  "workflowId": "plimsoll-survey-v1",
+  "gasLimit": "500000",
+  "assets": [
+    {
+      "symbol": "ETH",
+      "pair": "ETH/USD",
+      "haircutBps": 9000,
+      "liquid": false
+    },
+    {
+      "symbol": "WETH",
+      "pair": "ETH/USD",
+      "haircutBps": 9000,
+      "liquid": false
+    },
+    {
+      "symbol": "BTC",
+      "pair": "BTC/USD",
+      "haircutBps": 9000,
+      "liquid": false
+    },
+    {
+      "symbol": "WBTC",
+      "pair": "BTC/USD",
+      "haircutBps": 9000,
+      "liquid": false
+    }
+  ]
+}

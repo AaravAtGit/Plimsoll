@@ -3,8 +3,8 @@
 Foundry workspace for the onchain half of Plimsoll. Two contracts do the work:
 
 - **`PlimsollRegistry.sol`** — subject identities, Line ladders, EIP-712 address bindings,
-  Survey requests, and the Marks the CRE workflow writes. `postMark` is gated to the CRE
-  Forwarder; without that, anyone posts themselves an `ABOVE`.
+  Survey requests, and the Marks the CRE workflow writes. `onReport` and `postMark` are both
+  gated to the CRE Forwarder; without that, anyone posts themselves an `ABOVE`.
 - **`CreditDesk.sol`** — the reference consumer. Refuses to disburse without valid Standing,
   and binds the borrowing address to the attested subject.
 
@@ -40,6 +40,21 @@ From the CRE Forwarder Directory:
 The forwarder is immutable — a mutable one is a backdoor — so deploy a second registry to switch
 between simulation and live. Override with `CRE_FORWARDER`.
 
+## How a Mark actually arrives
+
+The Forwarder does not call `postMark`. It calls `onReport(bytes metadata, bytes report)` on
+every receiver, so that is the entry point a real Mark travels through: it decodes the workflow's
+payload and funnels into the same internal path and the same validation.
+
+```
+bytes32 surveyId, uint8 verdict, uint64 asOf, uint64 expiry, bytes32 sourceSetHash, bytes32 workflowId
+```
+
+`postMark` remains as the hand-drivable twin — it is what the tests and a deploy script use to
+post a Mark without a workflow. `metadata` is ignored deliberately: its layout is
+Forwarder-version specific, and authenticity rests on `onlyForwarder`, which is what makes the
+report a CRE-signed one in the first place.
+
 ## One deliberate deviation from the spec
 
 `hasStanding` does **not** require every Mark in the run to be unexpired, because that is
@@ -50,7 +65,7 @@ have lapsed. See the NatSpec on the function.
 
 ## Test coverage
 
-`forge test` — 38 tests. The ones worth reading, because they encode the trust model rather than
+`forge test` — 42 tests. The ones worth reading, because they encode the trust model rather than
 the syntax:
 
 | Test | What it pins down |
@@ -61,3 +76,4 @@ the syntax:
 | `test_bindAddress_rejectsSubjectOwnerClaimingAnAddressItDoesNotHold` | A subject cannot bind an address it has no key for. |
 | `test_borrow_underwritesCumulativeExposure` | One Mark at 250k does not fund an unbounded number of 250k draws. |
 | `test_relaxedTerms_acceptWhatStrictTermsRefuse` | Standing is lender policy, and a lender is free to choose a bad one. |
+| `test_onReport_appliesTheSameValidationAsPostMark` | A CRE report is signed, not trusted. A fabricated source set is refused down either path. |

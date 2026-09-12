@@ -15,7 +15,7 @@ One Next.js app plus a Foundry project. One repo, one deploy, one submission.
 
 ```
 plimsoll/
-├── app/                C9  Next.js 15 App Router - landing page, dashboard, guide
+├── app/                C9  Next.js 15 App Router - landing page and guide
 │   └── api/            C4  Route handlers over viem - the surface Bazantic fronts
 │                           C8 `chainlink-price` lives here too, as /price and /line-for
 ├── src/
@@ -23,7 +23,9 @@ plimsoll/
 │   ├── sections/           Landing-page sections
 │   └── server/             Chain reads, the price and survey services, typed ABIs
 ├── contracts/          C1  Foundry - PlimsollRegistry, C6 CreditDesk
-├── bazantic/           C5  Recipes, registration guide (see bazantic/README.md)
+├── cre/                C2  The Survey workflow (see cre/README.md)
+├── bazantic/           C5  Recipe definitions, registration guide (see bazantic/README.md)
+├── public/                 The two OpenAPI specs Bazantic fetches, served at the origin root
 ├── docs/                   The landing-page design brief
 └── scripts/                gen-abi.sh - contracts -> src/server/abi
 ```
@@ -31,9 +33,17 @@ plimsoll/
 The API is not a separate service. It is route handlers in the same Next app, so there is one
 `pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
 
-Still unbuilt: **C2** the CRE Survey workflow (`handlerInTee`), **C3** the Hold adapters,
-**C7** the demo agents, **C10** the A/B clip. The dashboard in `app/dashboard` currently drives
-itself from local state rather than from chain reads.
+**C2** is written but not yet run: the `cre` CLI and Bun are not installed here, so the policy
+layer is covered by unit tests and the workflow itself has never been compiled or simulated. The
+first `cre workflow simulate` is the real test. See [`cre/README.md`](cre/README.md).
+
+Still unbuilt: **C3** the Hold adapters, **C7** the demo agents, **C9** the dashboard, **C10**
+the A/B clip. There is no dashboard route: the one that existed drove itself entirely from
+hardcoded state, showing Marks that had never been surveyed, and was removed rather than left
+to imply otherwise.
+
+Before writing more code, work through [`CHECKLIST.md`](CHECKLIST.md): every account, wallet,
+tool and decision that only a human can supply, and which code step each one unblocks.
 
 ### Quickstart
 
@@ -41,8 +51,11 @@ itself from local state rather than from chain reads.
 pnpm install
 
 # contracts
-pnpm contracts:test          # 38 tests
+pnpm contracts:test          # 42 tests
 pnpm contracts:build
+
+# the Survey's policy layer - haircuts, the threshold, consent masking
+pnpm cre:test                # 14 tests, no CRE toolchain needed
 
 # web + API - needs a deployed registry address
 cp .env.example .env.local
@@ -50,8 +63,10 @@ pnpm dev                     # :5199, the API under /api
 ```
 
 Deploying the contracts, and the one deliberate deviation from the `hasStanding` spec below, are
-documented in [`contracts/README.md`](contracts/README.md). Bazantic registration and the Recipe
-quality gate are in [`bazantic/README.md`](bazantic/README.md).
+documented in [`contracts/README.md`](contracts/README.md). The Survey workflow, its two
+registration modes and the audit of the crossing payload are in [`cre/README.md`](cre/README.md).
+Bazantic registration and the Recipe quality gate are in
+[`bazantic/README.md`](bazantic/README.md).
 
 ---
 
@@ -161,14 +176,14 @@ CreditDesk.sol reads Standing → disburses or refuses
 | # | Component | Stack | Status |
 | --- | --- | --- | --- |
 | C1 | `PlimsollRegistry.sol` | Solidity, Ethereum Sepolia | Must have |
-| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Must have |
-| C3 | Hold adapters | One real CEX read-only key, one real wallet read, one documented mock | Must have |
+| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Written, unsimulated |
+| C3 | Hold adapters | One real CEX read-only key, one real wallet read | Must have |
 | C4 | Plimsoll API | Thin HTTP service: trigger Survey, read Marks | Must have |
 | C5 | Bazantic gateway + MCP + 2 Recipes | bazantic.com | Must have |
 | C6 | `CreditDesk.sol` | Consumer contract that refuses to lend without valid Standing | Must have |
 | C7 | Demo agents | Subject agent + counterparty agent, MCP clients | Must have |
 | C8 | Chainlink price service on Bazantic | Second service for the composed Recipe | Must have |
-| C9 | Minimal UI | Two agent panes, live Mark card, links to Sepolia | Should have |
+| C9 | Minimal UI | Two agent panes, live Mark card, links to Sepolia | Not built |
 | C10 | A/B clip | Recipe on vs off, n=10, reported as a rate | Nice to have |
 
 ---
@@ -366,8 +381,12 @@ An earlier draft of this design failed that bar: Chainlink sat *inside* Plimsoll
 
 | | Service | Provider | Role |
 | --- | --- | --- | --- |
-| **1** | `chainlink-price` gateway | Chainlink (sponsor) | Returns the current Chainlink price for an asset, with `roundId` and `updatedAt`. |
-| **2** | `plimsoll-survey` gateway | Plimsoll (ours, x402/MPP) | Requests a Survey at a given Line and returns the Mark. |
+| **1** | `chainlink-price` gateway | Ours, reading the Chainlink Data Feed (sponsor API) | Returns the current Chainlink price for an asset, with `roundId` and `updatedAt`, and derives the Line. |
+| **2** | `plimsoll-survey` gateway | Ours, x402/MPP | Requests a Survey at a given Line and returns the Mark. |
+
+Two gateways, two specs, one origin. There is no Chainlink price gateway on Bazantic to bind
+to - checked against the live listing - so service 1 is ours, and the sponsor API is the feed
+it reads.
 
 The composed Recipe, `underwrite_counterparty`:
 

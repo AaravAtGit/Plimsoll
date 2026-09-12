@@ -51,8 +51,8 @@ agent quoting a deal in ETH genuinely needs a price to size a USD credit line.
 3. **Request the Survey.** Call `requestSurvey({subjectId, lineId: line.lineId})`. This is the
    paid call. Keep the returned `surveyId`.
 
-4. **Poll for the Mark.** Call `getMark(surveyId)` every ~5s until it returns 200. Give up after
-   60 seconds and treat the outcome as `INDETERMINATE`.
+4. **Poll for the Mark.** Call `getMark(surveyId)` every ~10s until it returns 200. Give up after
+   120 seconds and treat the outcome as `INDETERMINATE`.
 
 5. **Decide.**
 

@@ -85,10 +85,10 @@ export default function ProtocolGuide() {
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <a
-              href="/dashboard"
+              href="https://github.com/AaravAtGit/plimsoll"
               className="label-mono flex items-center justify-center gap-2 border border-ink bg-ink px-6 py-3 text-xs text-paper hover:bg-signal hover:border-signal transition-colors"
             >
-              LAUNCH DASHBOARD
+              READ THE SOURCE
               <ArrowUpRight size={13} />
             </a>
           </div>
@@ -681,18 +681,10 @@ export const survey = async (runtime: TeeRuntime, log: SurveyRequestedLog) => {
 
               <ol className="list-decimal pl-5 space-y-3 text-xs font-mono">
                 <li>
-                  <strong className="text-ink">Open the Protocol Dashboard:</strong> Visit{" "}
-                  <a href="/dashboard" className="text-signal underline">
-                    /dashboard
-                  </a>{" "}
-                  and use the interactive Bazantic 2-Service Runner to simulate
-                  live underwriting.
-                </li>
-                <li>
-                  <strong className="text-ink">Add Bazantic MCP to your client:</strong> Copy
-                  the MCP configuration block from Tab 05 in the dashboard and
-                  paste into <code className="text-ink">~/.claude/claude_desktop_config.json</code> or{" "}
-                  <code className="text-ink">~/.cursor/mcp.json</code>.
+                  <strong className="text-ink">Derive the Line:</strong> Call{" "}
+                  <code className="text-ink">/api/line-for/ETH/USD?amount=60&amp;subjectId=0x...</code>{" "}
+                  to price the exposure at a Chainlink feed and pick the lowest rung
+                  on the subject&apos;s ladder that covers it.
                 </li>
                 <li>
                   <strong className="text-ink">Simulate CRE workflow:</strong> Run{" "}

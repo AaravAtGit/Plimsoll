@@ -237,6 +237,69 @@ contract PlimsollRegistryTest is Base {
         registry.postMark(id, ABOVE, nowTs + 1, nowTs + 300, SOURCE_SET, WORKFLOW);
     }
 
+    // ------------------------------------------------------------------ onReport
+
+    /// @dev The Forwarder never calls `postMark`. It calls `onReport` on every receiver, so this
+    ///      is the path a real Mark actually travels; `postMark` is the hand-drivable twin.
+    function test_onReport_landsAMarkThroughTheForwarderEntryPoint() public {
+        vm.prank(counterparty);
+        bytes32 id = registry.requestSurvey(SUBJECT, 1);
+        uint64 nowTs = _now();
+
+        vm.prank(forwarder);
+        registry.onReport("", abi.encode(id, ABOVE, nowTs, nowTs + 300, SOURCE_SET, WORKFLOW));
+
+        assertTrue(registry.isAboveLine(SUBJECT, NET_ASSETS, 250_000 * USD));
+        assertTrue(registry.surveyOf(id).fulfilled);
+    }
+
+    function test_onReport_onlyForwarder() public {
+        vm.prank(counterparty);
+        bytes32 id = registry.requestSurvey(SUBJECT, 1);
+
+        vm.prank(counterparty);
+        vm.expectRevert(PlimsollRegistry.NotForwarder.selector);
+        registry.onReport("", abi.encode(id, ABOVE, _now(), _now() + 300, SOURCE_SET, WORKFLOW));
+    }
+
+    /// @dev The decoded payload runs the same gauntlet as a hand-posted Mark. A report is
+    ///      CRE-signed, not trusted: a fabricated source set is refused either way.
+    function test_onReport_appliesTheSameValidationAsPostMark() public {
+        vm.prank(counterparty);
+        bytes32 id = registry.requestSurvey(SUBJECT, 1);
+        uint64 nowTs = _now();
+
+        vm.prank(forwarder);
+        vm.expectRevert(PlimsollRegistry.SourceSetNotAllowed.selector);
+        registry.onReport(
+            "", abi.encode(id, ABOVE, nowTs, nowTs + 300, keccak256("fabricated"), WORKFLOW)
+        );
+
+        vm.prank(forwarder);
+        vm.expectRevert(PlimsollRegistry.BadVerdict.selector);
+        registry.onReport("", abi.encode(id, uint8(9), nowTs, nowTs + 300, SOURCE_SET, WORKFLOW));
+
+        vm.prank(forwarder);
+        vm.expectRevert(PlimsollRegistry.ExpiryInPast.selector);
+        registry.onReport("", abi.encode(id, ABOVE, nowTs, nowTs, SOURCE_SET, WORKFLOW));
+    }
+
+    /// @dev Metadata is ignored by design, so a Forwarder version that changes its layout does
+    ///      not change what a Mark means.
+    function test_onReport_ignoresMetadata() public {
+        vm.prank(counterparty);
+        bytes32 id = registry.requestSurvey(SUBJECT, 1);
+        uint64 nowTs = _now();
+
+        vm.prank(forwarder);
+        registry.onReport(
+            abi.encode(keccak256("some other workflow"), uint32(7)),
+            abi.encode(id, ABOVE, nowTs, nowTs + 300, SOURCE_SET, WORKFLOW)
+        );
+
+        assertEq(registry.markAt(SUBJECT, 0).workflowId, WORKFLOW);
+    }
+
     // ------------------------------------------------------------------ isAboveLine
 
     /// @dev The reason Line is a struct and not a hash. A Mark cleared at 250k must serve a

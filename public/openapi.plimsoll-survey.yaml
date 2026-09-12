@@ -1,90 +1,26 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
-  title: Plimsoll
+  title: plimsoll-survey
   version: 0.1.0
-  summary: A credit check that requires no disclosure.
   description: |
-    Plimsoll answers one question about an autonomous agent - "is it above the line?" - without
-    revealing what it holds. A Chainlink CRE Confidential Workflow reads the subject's private
-    holdings inside an AWS Nitro enclave, values them at Chainlink prices after published
-    haircuts, evaluates a threshold, and emits a single boolean onchain as a Mark.
+    Service 2 of Plimsoll. A credit check that requires no disclosure.
+
+    Request a confidential Survey of an agent at a Line, and read back the Mark. A Chainlink CRE
+    Confidential Workflow reads the subject's private holdings inside an AWS Nitro enclave,
+    values them at Chainlink prices after published haircuts, evaluates the Line, and emits a
+    single boolean onchain.
 
     A Mark is a verdict and its provenance. It contains no balance, no price, no ratio, and no
     headroom. It is NOT a solvency oracle or a credit score: it attests that allowlisted sources
     bound to this subject, queried at time T with credentials the subject provisioned, reported
     holdings satisfying Line L.
-
-    Two services are exposed. `chainlink-price` returns a Chainlink price and derives the Line an
-    exposure implies. `plimsoll-survey` requests a Survey at that Line and returns the Mark. The
-    threshold tested by the second is computed from the output of the first.
 servers:
-  - url: https://plimsoll.xyz/api
-    description: Set this to your deployed gateway before registering with Bazantic.
-
-tags:
-  - name: chainlink-price
-    description: Service 1. Chainlink Data Feed reads and Line derivation.
-  - name: plimsoll-survey
-    description: Service 2. Confidential Survey requests and Mark retrieval.
+  - url: https://plimsoll.vercel.app/api
+    description: Must match the --endpoint passed to `baz gateway add`.
 
 paths:
-  /price/{pair}:
-    get:
-      tags: [chainlink-price]
-      operationId: getPrice
-      summary: Current Chainlink price for a pair.
-      description: |
-        Reads `latestRoundData()` from the Chainlink Data Feed proxy on Ethereum Sepolia.
-        `stale` is surfaced rather than thrown on: a caller sizing a credit line needs to see
-        that a number is old and decide for itself.
-      parameters:
-        - {name: pair, in: path, required: true, schema: {type: string, examples: ["ETH/USD"]}}
-      responses:
-        "200":
-          description: A price quote.
-          content:
-            application/json:
-              schema: {$ref: "#/components/schemas/PriceQuote"}
-        "404": {description: Unknown pair.}
-
-  /line-for/{pair}:
-    get:
-      tags: [chainlink-price]
-      operationId: deriveLine
-      summary: Convert an exposure into the Line it implies for a subject.
-      description: |
-        The joint between the two services. Prices the exposure at Chainlink, then selects the
-        LOWEST rung of the subject's registered ladder that still covers it.
-
-        Rounding up is the privacy-preserving direction. `line: null` means the subject has
-        registered no rung covering this exposure - a real answer, not an error. Decline; do not
-        ask at a lower rung.
-      parameters:
-        - {name: pair, in: path, required: true, schema: {type: string, examples: ["ETH/USD"]}}
-        - {name: amount, in: query, required: true, schema: {type: number, examples: [60]},
-           description: Exposure denominated in the pair's base asset.}
-        - {name: subjectId, in: query, required: true, schema: {$ref: "#/components/schemas/Bytes32"}}
-      responses:
-        "200":
-          description: The quote, the exposure in USD, and the selected Line.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  quote: {$ref: "#/components/schemas/PriceQuote"}
-                  exposureUsd1e8: {type: string}
-                  exposureUsd: {type: number}
-                  line:
-                    oneOf:
-                      - {$ref: "#/components/schemas/Line"}
-                      - {type: "null"}
-                  ladder: {type: array, items: {$ref: "#/components/schemas/Line"}}
-        "400": {description: Missing or malformed amount or subjectId.}
-
   /ladder/{subjectId}:
     get:
-      tags: [plimsoll-survey]
       operationId: getLadder
       summary: A subject's registered Line ladder.
       description: |
@@ -92,7 +28,10 @@ paths:
         surface: a subject registering [100k, 250k, 500k, 1m] has consented to publishing about
         two bits to anyone willing to pay four times.
       parameters:
-        - {name: subjectId, in: path, required: true, schema: {$ref: "#/components/schemas/Bytes32"}}
+        - name: subjectId
+          in: path
+          required: true
+          schema: {$ref: "#/components/schemas/Bytes32"}
       responses:
         "200":
           description: The ladder.
@@ -106,13 +45,12 @@ paths:
 
   /survey:
     post:
-      tags: [plimsoll-survey]
       operationId: requestSurvey
       summary: Request one confidential Survey. Paid.
       description: |
         Sends `requestSurvey()` onchain, which emits `SurveyRequested`. A CRE EVM Log trigger
         picks that up and runs the Survey inside the enclave. Returns immediately with a
-        `surveyId`; poll `/mark/{surveyId}`.
+        `surveyId`; poll `getMark`.
 
         Rate limited per (subject, requester) pair. This limit - not the fee - is the privacy
         mechanism: a few cents deters nobody from walking the ladder downward.
@@ -137,21 +75,24 @@ paths:
                   surveyId: {$ref: "#/components/schemas/Bytes32"}
                   txHash: {type: string}
                   explorer: {type: string}
-                  poll: {type: string}
+                  poll: {type: string, description: Path of the getMark call for this Survey.}
                   pollAfterSeconds: {type: integer}
+                  giveUpAfterSeconds: {type: integer}
         "400": {description: Malformed subjectId or lineId.}
         "502": {description: Onchain request failed - rate limited, unknown Line, or RPC failure.}
 
   /mark/{surveyId}:
     get:
-      tags: [plimsoll-survey]
       operationId: getMark
       summary: Retrieve the Mark for a Survey.
       description: |
         Returns 202 with `status: pending` while the enclave runs and the DON reaches consensus.
-        Poll roughly every 5 seconds; a Survey typically settles within 30.
+        Poll every 10 seconds. Give up after 120 seconds and treat the outcome as INDETERMINATE.
       parameters:
-        - {name: surveyId, in: path, required: true, schema: {$ref: "#/components/schemas/Bytes32"}}
+        - name: surveyId
+          in: path
+          required: true
+          schema: {$ref: "#/components/schemas/Bytes32"}
       responses:
         "200":
           description: The Mark.
@@ -160,14 +101,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  status: {type: string, const: settled}
+                  status: {type: string, enum: [settled]}
                   mark: {$ref: "#/components/schemas/Mark"}
         "202": {description: Still running.}
         "404": {description: Unknown surveyId.}
 
   /standing/{subjectId}:
     get:
-      tags: [plimsoll-survey]
       operationId: hasStanding
       summary: Does the subject hold an unbroken run of Marks?
       description: |
@@ -175,10 +115,21 @@ paths:
         ABOVE at or above the threshold, spanning at least `window` seconds, with at least one
         still live. A single favourable Mark can be flash-funded; a run spanning a day cannot.
       parameters:
-        - {name: subjectId, in: path, required: true, schema: {$ref: "#/components/schemas/Bytes32"}}
-        - {name: thresholdUsd, in: query, required: true, schema: {type: number, examples: [250000]}}
-        - {name: k, in: query, schema: {type: integer, default: 3}}
-        - {name: window, in: query, schema: {type: integer, default: 86400}}
+        - name: subjectId
+          in: path
+          required: true
+          schema: {$ref: "#/components/schemas/Bytes32"}
+        - name: thresholdUsd
+          in: query
+          required: true
+          schema: {type: number}
+          example: 250000
+        - name: k
+          in: query
+          schema: {type: integer, default: 3}
+        - name: window
+          in: query
+          schema: {type: integer, default: 86400}
       responses:
         "200":
           description: The standing verdict.
@@ -199,19 +150,6 @@ components:
       type: string
       pattern: "^0x[0-9a-fA-F]{64}$"
 
-    PriceQuote:
-      type: object
-      properties:
-        pair: {type: string}
-        price: {type: string, description: Integer answer at `decimals` precision.}
-        decimals: {type: integer}
-        roundId: {type: string}
-        updatedAt: {type: integer}
-        ageSeconds: {type: integer}
-        stale: {type: boolean, description: Older than the configured staleness guard.}
-        feed: {type: string}
-        chainId: {type: integer}
-
     Line:
       type: object
       description: One rung of a subject's ladder. A threshold predicate, never a balance.
@@ -219,15 +157,10 @@ components:
         lineId: {type: integer}
         metricId: {type: integer}
         metric: {type: string, enum: [observed_net_assets_usd, observed_liquid_usd]}
-        comparator: {type: string, const: ">="}
+        comparator: {type: string, enum: [">="]}
         threshold: {type: string, description: USD at 1e8 fixed point.}
         thresholdUsd: {type: number}
-        publishBelow:
-          type: boolean
-          description: |
-            Whether the subject consented to BELOW verdicts being published for this rung. A
-            BELOW leaks an upper bound, which is the more sensitive direction, so it is opt-in.
-            Where consent is withheld the Survey returns INDETERMINATE.
+        publishBelow: {type: boolean}
 
     Mark:
       type: object

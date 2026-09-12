@@ -31,3 +31,4 @@ contracts/lib/
 # local claude settings
 .claude/settings.local.json
 .claude/skills/
+CHECKLIST.md 

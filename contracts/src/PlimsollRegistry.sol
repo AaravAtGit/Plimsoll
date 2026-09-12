@@ -346,6 +346,44 @@ contract PlimsollRegistry is IPlimsollRegistry {
         bytes32 sourceSetHash,
         bytes32 workflowId
     ) external onlyForwarder {
+        _postMark(surveyId, verdict, asOf, expiry, sourceSetHash, workflowId);
+    }
+
+    /// @notice The CRE Forwarder entry point. Decodes one Survey report into a Mark.
+    /// @dev The Forwarder does not call `postMark` - it calls `onReport` on every receiver, with
+    ///      the workflow's ABI-encoded payload in `report`. Without this function the workflow
+    ///      cannot land a Mark at all, whatever `postMark`'s signature says.
+    ///
+    ///      `metadata` carries the Forwarder's own workflow and DON identifiers. We deliberately
+    ///      do not decode it: its layout is Forwarder-version specific, and `workflowId` is
+    ///      already in the payload where the workflow put it and where a test can reach it.
+    ///      Authenticity does not rest on that field - it rests on `onlyForwarder`, which is
+    ///      what makes the report a CRE-signed one.
+    ///
+    ///      Everything arriving here crossed the enclave boundary via `usingTheDons()`. That
+    ///      payload is the entire privacy claim, so it is audited as a single struct: a verdict
+    ///      and provenance, and not one quantity.
+    function onReport(bytes calldata, bytes calldata report) external onlyForwarder {
+        (
+            bytes32 surveyId,
+            uint8 verdict,
+            uint64 asOf,
+            uint64 expiry,
+            bytes32 sourceSetHash,
+            bytes32 workflowId
+        ) = abi.decode(report, (bytes32, uint8, uint64, uint64, bytes32, bytes32));
+
+        _postMark(surveyId, verdict, asOf, expiry, sourceSetHash, workflowId);
+    }
+
+    function _postMark(
+        bytes32 surveyId,
+        uint8 verdict,
+        uint64 asOf,
+        uint64 expiry,
+        bytes32 sourceSetHash,
+        bytes32 workflowId
+    ) internal {
         PlimsollTypes.Survey storage s = _surveys[surveyId];
         if (s.subjectId == bytes32(0)) revert SurveyUnknown();
         if (s.fulfilled) revert SurveyAlreadyFulfilled();

@@ -1,0 +1,56 @@
+{
+  "name": "Request Mark",
+  "description": "Obtain one confidential credit verdict about a counterparty agent without asking it to disclose anything. Reads the subject's registered ladder, selects the lowest rung covering your exposure, requests one Survey, and returns the Mark. Never retries at a lower rung.",
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "subjectId",
+      "exposureUsd"
+    ],
+    "properties": {
+      "subjectId": {
+        "type": "string",
+        "title": "Subject ID",
+        "pattern": "^0x[0-9a-fA-F]{64}$",
+        "description": "The bytes32 subject identity of the agent being underwritten."
+      },
+      "exposureUsd": {
+        "type": "number",
+        "title": "Exposure (USD)",
+        "description": "Your intended uncollateralised exposure in USD. The Line is the lowest registered rung at or above this."
+      },
+      "requireStanding": {
+        "type": "boolean",
+        "title": "Require Standing",
+        "description": "Also require k=3 Surveys spanning 24h at the selected threshold."
+      }
+    },
+    "additionalProperties": false
+  },
+  "input_example": {
+    "subjectId": "0xabababababababababababababababababababababababababababababababab",
+    "exposureUsd": 180000,
+    "requireStanding": false
+  },
+  "output_example": "Ladder: [100000, 250000, 500000, 1000000]. Lowest rung covering $180,000: lineId 1 ($250,000). Survey 0x9f30...41bd requested; Mark settled after 41s.\n\n```json\n{\"verdict\":\"ABOVE\",\"lineId\":1,\"thresholdUsd\":250000,\"surveyId\":\"0x9f30...41bd\",\"asOf\":1757000000,\"expiry\":1757000300,\"expired\":false,\"recommendation\":\"PROCEED\"}\n```",
+  "prompt_template": "You are underwriting a counterparty agent. Follow these instructions exactly.\n\n## When to use this\n\nReach for a Mark before you take uncollateralised exposure to an agent you have not previously\ntransacted with:\n\n- extending credit or net terms\n- releasing goods, compute or data ahead of payment\n- opening margin against a counterparty\n- granting a spending mandate\n\nDo **not** use it for a fully collateralised, atomic, or prepaid trade. There is no exposure to\nunderwrite, and a Survey costs real money.\n\n## What you need first\n\n1. **A subject identity** \u2014 the `subjectId` (bytes32) of the agent you are underwriting. If the\n   counterparty has not given you one, it is not enrolled and you cannot get a Mark.\n2. **A Line** \u2014 a threshold at or above your intended exposure, chosen from the rungs the subject\n   has already registered. Call `getLadder` to see them. You cannot invent a Line.\n3. **A freshness window** \u2014 how old a verdict you will accept. Default 300 seconds.\n\n## Steps\n\n1. `getLadder(subjectId)` \u2014 read the registered rungs.\n2. Select the **lowest** rung whose `thresholdUsd` is greater than or equal to your exposure.\n   If no rung covers it, stop: the deal is larger than anything this subject consented to be\n   asked about. Decline or reduce exposure. Do not ask at a lower rung.\n3. `requestSurvey({subjectId, lineId})` \u2014 this is the paid call. You get back a `surveyId`.\n4. `getMark(surveyId)` \u2014 poll every ~10s. It returns 202 `pending` while the enclave runs.\n   Give up after 120 seconds and treat the result as INDETERMINATE.\n\n## Reading the result\n\n**A Mark is a boolean, not a balance.** There is no amount in it and there never will be.\n\n| verdict | What it means | What to do |\n| --- | --- | --- |\n| `ABOVE` | The named, bound sources reported holdings satisfying the Line at `asOf`, after published haircuts. | Proceed, if `expiry` is still in the future. |\n| `BELOW` | They did not. | Decline, or require collateral. |\n| `INDETERMINATE` | No defensible answer: a source was down, a price was stale, or the subject withheld consent for BELOW on this rung. | Treat as no. It is **not** a soft yes. |\n\nAlways check `expiry` before acting on a Mark. A Mark that has lapsed tells you what was true\nthen, not what is true now.\n\n`ABOVE` does **not** mean the counterparty is solvent, unencumbered, or will remain either. It\nmeans specific allowlisted sources reported specific holdings at one moment. Nothing about\noff-balance-sheet obligations, and nothing about whether the same assets are already pledged\nelsewhere, is visible to a Survey.\n\n## On `false` \u2014 read this before retrying\n\n**Do not retry at a lower Line to discover the actual balance.**\n\nIt will feel like the obvious next move. A `BELOW` at $250k invites the question \"well, what\n*would* clear?\", and walking down the ladder answers it in two or three calls. That is a\nbinary search over a private balance sheet, and the subject has not consented to it.\n\nPlimsoll rate-limits requests per (subject, requester) pair specifically to bound this, so the\nattempt will mostly fail anyway. But the reason not to do it is not that it fails. It is that\nthe entire value of a Mark to the subject is that answering does not disclose.\n\nWhen a verdict comes back `BELOW` or `INDETERMINATE`, choose one of:\n\n- **require collateral**, and price the deal accordingly\n- **reduce exposure** below a rung the subject has *already* cleared, using an existing Mark\n- **decline**\n\nNote also that a `BELOW` leaks more than an `ABOVE`: `ABOVE` at $250k gives you a lower bound;\n`BELOW` gives you an *upper* bound, which is the more sensitive direction. Treat a `BELOW` you\nreceive as confidential to the deal you are underwriting.\n\n## Standing, when one Mark is not enough\n\nA single Mark is a snapshot, and a snapshot can be arranged. An agent can borrow to fund its\nholdings, take one favourable Survey, draw credit, and unwind.\n\nFor material exposure, call `hasStanding` instead: `k` distinct Surveys, all `ABOVE` at or above\nyour threshold, spanning at least `window` seconds. Three Marks across a day cannot be bought\nwith a one-block loan. Use a single Mark for small or short-dated exposure; require Standing for\nanything you would be unhappy to lose.\n\n## Inputs\n\n{{inputs}}\n\nReport the derivation, then the decision, then the JSON block described in the output format.",
+  "model": "REPLACE_ME",
+  "tool_bindings": [
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "getLadder"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "requestSurvey"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "getMark"
+    },
+    {
+      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "tool_name": "hasStanding"
+    }
+  ]
+}

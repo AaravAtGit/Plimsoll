@@ -6,7 +6,6 @@ import { LoadDisc } from "../components/LoadLine";
 const LINKS = [
   { label: "OVERVIEW", href: "/#question" },
   { label: "PIPELINE", href: "/#survey" },
-  { label: "DASHBOARD", href: "/dashboard" },
   { label: "GUIDE", href: "/guide" },
   { label: "STACK", href: "/#stack" },
 ];
@@ -36,10 +35,10 @@ export default function Nav() {
 
         <StarBorder className="group">
           <Link
-            href="/dashboard"
+            href="/guide"
             className="label-mono flex items-center gap-1.5 bg-paper px-4 py-2 text-ink transition-colors group-hover:text-signal"
           >
-            LAUNCH APP
+            READ THE GUIDE
             <ArrowUpRight size={13} strokeWidth={1.5} />
           </Link>
         </StarBorder>

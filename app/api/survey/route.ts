@@ -21,8 +21,12 @@ export async function POST(req: Request) {
         explorer: `https://sepolia.etherscan.io/tx/${txHash}`,
         // The Survey runs asynchronously: the EVM log trigger fires, the enclave executes, the
         // DON reaches consensus, and only then does a Mark land. Poll.
-        poll: `/api/mark/${surveyId}`,
-        pollAfterSeconds: 15,
+        //
+        // The path is relative to the API root, not the origin: through the Bazantic gateway
+        // an agent sees `{endpointUrl}/mark/...`, and `endpointUrl` already ends in `/api`.
+        poll: `/mark/${surveyId}`,
+        pollAfterSeconds: 10,
+        giveUpAfterSeconds: 120,
       },
       202,
     );
