@@ -82,6 +82,13 @@ baz whoami --json
 
    Each returns `{ok, id, slug, mcpUrl}`. **Keep the two slugs** - the Recipes bind to them.
 
+   Registered 2026-09-13:
+
+   | Gateway | Slug | MCP |
+   | --- | --- | --- |
+   | `chainlink-price` | `hhpdppbobbchre2dn3xlgv5fyy` | `https://hhpdppbobbchre2dn3xlgv5fyy.bazgateway.com/mcp` |
+   | `plimsoll-survey` | `3ceg4ly6kvabxp7fxeqnjtotpu` | `https://3ceg4ly6kvabxp7fxeqnjtotpu.bazgateway.com/mcp` |
+
 3. **Finish in the dashboard** (`/gateways/new` or the gateway's page): confirm no-auth, set the
    per-method prices - `requestSurvey` is the one that costs us money - and activate.
 

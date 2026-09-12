@@ -37,19 +37,19 @@
   "model": "REPLACE_ME",
   "tool_bindings": [
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "getLadder"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "requestSurvey"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "getMark"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "hasStanding"
     }
   ]

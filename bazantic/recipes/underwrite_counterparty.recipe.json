@@ -50,19 +50,19 @@
   "model": "REPLACE_ME",
   "tool_bindings": [
     {
-      "gateway_slug": "REPLACE_ME:chainlink-price",
+      "gateway_slug": "hhpdppbobbchre2dn3xlgv5fyy",
       "tool_name": "deriveLine"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "requestSurvey"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "getMark"
     },
     {
-      "gateway_slug": "REPLACE_ME:plimsoll-survey",
+      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
       "tool_name": "hasStanding"
     }
   ]
