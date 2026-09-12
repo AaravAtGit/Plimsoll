@@ -188,6 +188,8 @@ export const survey = (
     outcome = {verdict: VERDICT_INDETERMINATE, asOf: Math.floor(runtime.now().getTime() / 1000)};
   }
 
+  if (config.debug) runtime.log(`verdict ${outcome.verdict} asOf ${outcome.asOf}`);
+
   // ---- the one-way door ----------------------------------------------------------------
   // Everything below this line executes on Workflow DON nodes.
   const donRuntime = inEnclave(runtime) ? runtime.usingTheDons() : runtime;
