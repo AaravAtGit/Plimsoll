@@ -4,7 +4,7 @@
   "chainSelectorName": "ethereum-testnet-sepolia",
   "registryAddress": "0xDE76042288d04539B9e18dc1C355219567B88447",
   "apiBaseUrl": "http://localhost:5199",
-  "holdBaseUrl": "http://localhost:5199/api/hold",
+  "holdBaseUrl": "http://localhost:5199/api",
   "holdSecretId": "PLIMSOLL_HOLD_KEY",
   "priceMaxAgeSeconds": 3600,
   "markTtlSeconds": 300,

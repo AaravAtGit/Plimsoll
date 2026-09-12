@@ -33,8 +33,8 @@ plimsoll/
 The API is not a separate service. It is route handlers in the same Next app, so there is one
 `pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
 
-**C2** typechecks and compiles to WASM against the real SDK, but has not run end to end: the
-EVM log trigger needs a real `requestSurvey` transaction, which needs a deployed registry.
+**C2** simulates end to end against a real Sepolia `requestSurvey` transaction. Every Survey
+ends INDETERMINATE until **C3** serves the Hold - the designed failure, not a broken workflow.
 See [`cre/README.md`](cre/README.md).
 
 Still unbuilt: **C3** the Hold adapters, **C7** the demo agents, **C9** the dashboard, **C10**
@@ -186,7 +186,7 @@ CreditDesk.sol reads Standing → disburses or refuses
 | # | Component | Stack | Status |
 | --- | --- | --- | --- |
 | C1 | `PlimsollRegistry.sol` | Solidity, Ethereum Sepolia | Must have |
-| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Compiles; simulation awaits a deployed registry |
+| C2 | Survey workflow | CRE TypeScript SDK, `handlerInTee` | Simulates end to end; INDETERMINATE until C3 |
 | C3 | Hold adapters | One real CEX read-only key, one real wallet read | Must have |
 | C4 | Plimsoll API | Thin HTTP service: trigger Survey, read Marks | Must have |
 | C5 | Bazantic gateway + MCP + 2 Recipes | bazantic.com | Must have |

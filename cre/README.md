@@ -102,10 +102,24 @@ arithmetic:
 
 ## Where it stands
 
-The workflow **typechecks and compiles to WASM** against `@chainlink/cre-sdk@1.18.0`
-(`cre workflow simulate` prints `Workflow compiled` and a binary hash). A full simulation has
-not run yet: the EVM log trigger needs a real `requestSurvey` transaction hash, which needs a
-deployed registry. That is the next thing to unblock, and it is a deploy step, not a code step.
+The Survey **simulates end to end against a real Sepolia `SurveyRequested` transaction**:
+trigger decode, the TEE handler, the Vault secret, the ladder over HTTP, the Hold read, the
+verdict, the report, and `writeReport`. Until the C3 Hold adapter exists at
+`{holdBaseUrl}/hold/{subjectId}`, that read 404s and every Survey ends INDETERMINATE - which
+is the designed failure, not a broken workflow.
+
+```bash
+# one request tx can be replayed through the simulator indefinitely: a non-broadcast run
+# posts nothing and never marks the Survey fulfilled
+cd cre && cre workflow simulate ./survey --target staging-settings --non-interactive \
+  --trigger-index 0 --evm-tx-hash 0xf144ebe718231974f38712e067ac0b42ad54eb69e7ab230d43f6801784fbd51b --evm-event-index 0
+```
+
+To see the verdict path while developing, copy `config.staging.json` to
+`config.debug.json` with `debug: true` and add `--config config.debug.json` (path relative to
+the workflow directory; the file is gitignored and must stay out of any submitted run). The
+reason for an INDETERMINATE is deliberately not logged even then - read the API server's
+request log instead, which shows each upstream and its status.
 
 Three things learned on first compile, kept here so nobody relearns them:
 
@@ -123,8 +137,8 @@ Three things learned on first compile, kept here so nobody relearns them:
 - **Only ETH and BTC are allowlisted**, because `FEEDS` in `src/server/services/price.ts` knows
   only those two pairs. A stablecoin leg needs its Sepolia feed added there first — until then a
   Hold holding USDC returns INDETERMINATE, which is the honest failure but a poor demo.
-- **There is no Hold adapter yet.** `holdBaseUrl` points at `/api/hold`, which does not exist
-  until C3 is built, so every Survey currently ends INDETERMINATE. That is the honest failure,
-  not a broken workflow. The JSON shape in `sources.ts` is the contract C3 must serve.
+- **There is no Hold adapter yet.** The workflow calls `{holdBaseUrl}/hold/{subjectId}`;
+  nothing serves it until C3 is built, so every Survey currently ends INDETERMINATE. The JSON
+  shape in `sources.ts` is the contract C3 must serve.
 - **`holdSecretId` is one ID, not one per subject.** Production templates it as
   `CEX_RO_<subjectId>`; staging uses a single ID so `secrets.yaml` can name it.

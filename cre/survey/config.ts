@@ -41,7 +41,8 @@ export const configSchema = z.object({
   /// inside the enclave, so the TEE cannot read the registry directly.
   apiBaseUrl: z.string(),
 
-  /// The C3 Hold adapter. This one IS sensitive: the response is the subject's balance sheet.
+  /// Base URL of the API serving the C3 Hold adapter; the workflow appends `/hold/{subjectId}`.
+  /// This one IS sensitive: the response is the subject's balance sheet.
   holdBaseUrl: z.string(),
 
   /// Vault DON secret ID for the Hold credential. Production templates this per subject
