@@ -105,8 +105,18 @@ arithmetic:
 The Survey **simulates end to end against a real Sepolia `SurveyRequested` transaction and
 returns a real verdict**: trigger decode, the TEE handler, the Vault secret, the ladder over
 HTTP, the Hold read (C3, a wallet balance behind a shared key), the Chainlink price, the
-haircut valuation, the threshold, the report, and `writeReport`. First verified 2026-09-13:
-`verdict 1` (ABOVE) on the $50 rung from a ~0.037 ETH Hold at ETH/USD ≈ $2,520.
+haircut valuation, the threshold, the report, and `writeReport`. First verified 2026-09-13, then **broadcast**: two real Marks on Sepolia from the same
+0.25 ETH Hold at ETH/USD ≈ $2,520 -
+[ABOVE on $50](https://sepolia.etherscan.io/tx/0x8c9ff398bbe53c86b7202f35a94eab088f20f4b73ef2d4ebab7d9c79973214d8),
+[BELOW on $1000](https://sepolia.etherscan.io/tx/0x2e6b30b63ab4688e8d9f918b95891598d5b13f4758f094dd2f16a886ec5c736c).
+The BELOW is published because the subject consented on that rung; the $250 and $500 rungs
+would have masked it to INDETERMINATE.
+
+```bash
+# land a real Mark: the MockKeystoneForwarder posts it, CRE_ETH_PRIVATE_KEY pays the gas
+cre workflow simulate ./survey --target staging-settings --broadcast --non-interactive \
+  --trigger-index 0 --evm-tx-hash <requestSurvey tx> --evm-event-index 0
+```
 
 ```bash
 # one request tx can be replayed through the simulator indefinitely: a non-broadcast run

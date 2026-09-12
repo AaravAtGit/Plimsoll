@@ -33,9 +33,13 @@ plimsoll/
 The API is not a separate service. It is route handlers in the same Next app, so there is one
 `pnpm dev`, one Vercel deploy, and one origin for Bazantic to point its paywall at.
 
-**C2 + C3** run end to end in simulation against a real Sepolia `requestSurvey` transaction
-and return a real verdict (ABOVE on the $50 rung, from a wallet-read Hold at a live Chainlink
-price). See [`cre/README.md`](cre/README.md).
+**The loop has run for real.** Two Marks are on Sepolia, posted by the Survey workflow through
+the CRE Forwarder from real `requestSurvey` transactions: an **ABOVE** on the $50 rung
+([tx](https://sepolia.etherscan.io/tx/0x8c9ff398bbe53c86b7202f35a94eab088f20f4b73ef2d4ebab7d9c79973214d8))
+and a **BELOW** on the $1000 rung
+([tx](https://sepolia.etherscan.io/tx/0x2e6b30b63ab4688e8d9f918b95891598d5b13f4758f094dd2f16a886ec5c736c)),
+same Hold, same Chainlink round, and no amount anywhere in either. See
+[`cre/README.md`](cre/README.md).
 
 Still unbuilt: **C7** the demo agents, **C9** the dashboard, **C10**
 the A/B clip. There is no dashboard route: the one that existed drove itself entirely from
@@ -53,7 +57,7 @@ tool and decision that only a human can supply, and which code step each one unb
 | `CreditDesk` | [`0xf7F8332277D023c34d25F8aB51821942585D9aAB`](https://sepolia.etherscan.io/address/0xf7F8332277D023c34d25F8aB51821942585D9aAB) |
 | `DemoUSD` | [`0x56ADc48076AB73a0f6ef664a3A3C03e9fAe8B398`](https://sepolia.etherscan.io/address/0x56ADc48076AB73a0f6ef664a3A3C03e9fAe8B398) |
 | Forwarder | `0x15fC6ae953E024d975e77382eEeC56A9101f9F88` - the **simulation** MockKeystoneForwarder, by design (see contracts/README.md) |
-| Subject | `agent-solv-alpha.eth` = `0x61335871890d6e0c866ec4743b63b48d546c6c9d8acac9344c5787fbdec34838` |
+| Subject | `agent-solv-alpha.eth` = `0x61335871890d6e0c866ec4743b63b48d546c6c9d8acac9344c5787fbdec34838`, ladder 50 / 100 / 250 / 500 / 1000 USD |
 
 ### Quickstart
 
