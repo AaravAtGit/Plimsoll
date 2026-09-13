@@ -24,8 +24,9 @@ curl -s https://api.bazantic.com/v1/recipes/underwrite-counterparty | jq '{handl
 curl -s -o /dev/null -w '%{http_code}\n' https://n5ejlr45ffgexl2vobsk72jv7e.bazgateway.com/price/ETH-USD   # 402: the price of asking
 ```
 
-Two Marks are on Ethereum Sepolia, written by the Survey workflow through the CRE Forwarder from
-real request transactions. Same subject, same Hold, same Chainlink round — opposite verdicts,
+Marks are on Ethereum Sepolia, written by the Survey workflow through the CRE Forwarder from
+real request transactions - including one requested and read back entirely through Bazantic,
+x402-paid, by the published Recipe running as a bare agent. Same subject, same Hold, same Chainlink round — opposite verdicts,
 and not one amount in either.
 
 | | Verdict | Line | Transaction |
@@ -219,7 +220,8 @@ response.
 | C5 | Bazantic gateways + Recipes | **Live.** Two active gateways; [`underwrite-counterparty`](https://bazantic.com/recipes/underwrite-counterparty) and [`request-mark`](https://bazantic.com/recipes/request-mark) published. |
 | C6 | `CreditDesk` | Deployed. Refuses to lend without Standing. |
 | C8 | Chainlink price service | Live (`/api/price`, `/api/line-for`). |
-| C7 / C9 / C10 | Demo agents · dashboard · A/B clip | Not built. `baz recipe install` in an MCP client is the demo agent. |
+| C7 | Demo agent | The published Recipe, invoked as one MCP tool from a bare client with only its inputs: derived the Line, requested a Survey, refused to treat a pending Mark as a yes. See [`docs/evidence/bazantic/`](docs/evidence/bazantic/). |
+| C9 / C10 | Dashboard · A/B clip | Not built. |
 
 Two things to say plainly. Confidential Workflows is in private beta; the confidential path is
 what is simulated and submitted, exactly as the track allows, and the same handler registers with
