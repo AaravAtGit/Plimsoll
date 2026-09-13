@@ -127,6 +127,34 @@
   }
 }
 
+/* The Harbour Board: the parts of the page the browser draws still carry the design. */
+.stage {
+  caret-color: var(--color-signal);
+  scrollbar-color: rgba(250, 250, 247, 0.25) transparent;
+  scrollbar-width: thin;
+}
+.stage ::selection {
+  background: var(--color-paper);
+  color: var(--color-enclave);
+}
+.stage :focus-visible {
+  outline: 1.5px solid var(--color-paper);
+  outline-offset: 3px;
+}
+.stage .link {
+  text-decoration: underline;
+  text-decoration-color: rgba(250, 250, 247, 0.3);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.15s ease-out, color 0.15s ease-out;
+}
+.stage .link:hover {
+  color: var(--color-signal);
+  text-decoration-color: var(--color-signal);
+}
+.stage input::placeholder {
+  color: rgba(250, 250, 247, 0.3);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

@@ -7,6 +7,7 @@ import ClickSpark from "../components/bits/ClickSpark";
 import { LoadDisc } from "../components/LoadLine";
 
 const LINKS = [
+  { label: "HARBOUR BOARD", href: "/dashboard" },
   { label: "PROTOCOL GUIDE", href: "/guide" },
   { label: "REGISTRY ON SEPOLIA", href: "https://sepolia.etherscan.io/address/0xDE76042288d04539B9e18dc1C355219567B88447" },
   { label: "SOURCE", href: "https://github.com/AaravAtGit/plimsoll" },
@@ -27,10 +28,10 @@ export default function Footer() {
           <Magnet strength={0.25} className="mt-12">
             <ClickSpark sparkColor="#FAFAF7">
               <Link
-                href="/guide"
+                href="/dashboard"
                 className="label-mono flex items-center gap-2 border border-paper bg-paper px-8 py-4 text-ink transition-colors hover:bg-signal hover:border-signal hover:text-paper"
               >
-                READ THE GUIDE
+                OPEN THE BOARD
                 <ArrowUpRight size={14} strokeWidth={1.5} />
               </Link>
             </ClickSpark>

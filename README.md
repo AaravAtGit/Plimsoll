@@ -221,7 +221,8 @@ response.
 | C6 | `CreditDesk` | Deployed. Refuses to lend without Standing. |
 | C8 | Chainlink price service | Live (`/api/price`, `/api/line-for`). |
 | C7 | Demo agent | The published Recipe, invoked as one MCP tool from a bare client with only its inputs: derived the Line, requested a Survey, refused to treat a pending Mark as a yes. See [`docs/evidence/bazantic/`](docs/evidence/bazantic/). |
-| C9 / C10 | Dashboard · A/B clip | Not built. |
+| C9 | The Harbour Board | Live at [`/dashboard`](https://plimsol-xi.vercel.app/dashboard): derive a Line, request a Survey, watch the Mark land on the line; ladder, history, Standing, and the boundary audit. Every value fetched. |
+| C10 | A/B clip | Not built. |
 
 Two things to say plainly. Confidential Workflows is in private beta; the confidential path is
 what is simulated and submitted, exactly as the track allows, and the same handler registers with
@@ -237,12 +238,13 @@ above be real; a second registry against the live Forwarder is a redeploy, not a
 plimsoll/
 ├── app/api/            The HTTP surface. /price /line-for /ladder /survey /mark /standing, and
 │                       /hold — enclave-only, absent from every spec and gateway on purpose
+├── app/dashboard/      The Harbour Board - the live console
 ├── contracts/          Foundry. PlimsollRegistry, CreditDesk, deploy + seed scripts
 ├── cre/                The Survey workflow: policy.ts (pure valuation), sources.ts, workflow.ts
 ├── bazantic/           Two Recipe definitions, and the registration guide
 ├── public/             The two OpenAPI specs Bazantic fetches
 ├── docs/evidence/      Simulation transcripts
-└── src/                Landing page, guide, server services
+└── src/                Landing page, guide, the board, server services
 ```
 
 Each directory's README goes deeper: [`contracts/`](contracts/README.md) on the receiver path

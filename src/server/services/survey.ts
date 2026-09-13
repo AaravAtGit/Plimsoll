@@ -150,6 +150,41 @@ export async function getMark(surveyId: Hex): Promise<Mark | null> {
   return null;
 }
 
+/// Every Mark for a subject, newest first. Two reads per Mark; ladders are capped at 16 rungs
+/// and the rate limit bounds Surveys, so this stays small by construction.
+export async function listMarks(subjectId: Hex): Promise<Mark[]> {
+  const count = await publicClient.readContract({
+    address: env.registry,
+    abi: plimsollRegistryAbi,
+    functionName: "markCount",
+    args: [subjectId],
+  });
+  const now = Math.floor(Date.now() / 1000);
+  const marks = await Promise.all(
+    Array.from({length: Number(count)}, (_, i) =>
+      publicClient.readContract({
+        address: env.registry,
+        abi: plimsollRegistryAbi,
+        functionName: "markAt",
+        args: [subjectId, BigInt(i)],
+      }),
+    ),
+  );
+  return marks
+    .map((m) => ({
+      surveyId: m.surveyId,
+      subjectId: m.subjectId,
+      lineId: m.lineId,
+      verdict: VERDICT[m.verdict] ?? "INDETERMINATE",
+      asOf: Number(m.asOf),
+      expiry: Number(m.expiry),
+      expired: Number(m.expiry) <= now,
+      sourceSetHash: m.sourceSetHash,
+      workflowId: m.workflowId,
+    }))
+    .reverse();
+}
+
 export async function hasStanding(
   subjectId: Hex,
   thresholdUsd1e8: bigint,

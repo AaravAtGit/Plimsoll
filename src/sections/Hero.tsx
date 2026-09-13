@@ -70,19 +70,19 @@ export default function Hero() {
           <Magnet strength={0.25}>
             <ClickSpark sparkColor="#D71921">
               <Link
-                href="/guide"
+                href="/dashboard"
                 className="label-mono flex items-center gap-2 border border-ink bg-ink px-7 py-3.5 text-paper transition-colors hover:bg-signal hover:border-signal"
               >
-                READ THE PROTOCOL GUIDE
+                OPEN THE HARBOUR BOARD
                 <ArrowUpRight size={14} strokeWidth={1.5} />
               </Link>
             </ClickSpark>
           </Magnet>
           <Link
-            href="https://github.com/AaravAtGit/plimsoll"
+            href="/guide"
             className="label-mono border-b border-ink/40 pb-0.5 text-ink/70 transition-colors hover:border-signal hover:text-signal"
           >
-            READ THE SOURCE
+            READ THE PROTOCOL GUIDE
           </Link>
         </motion.div>
       </div>
