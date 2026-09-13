@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <MotionProvider>
-      <div className="min-h-screen bg-enclave text-paper">
-        <div className="sticky top-0 z-50">
+      <div className="min-h-screen bg-enclave">
+        <div className="sticky top-0 z-50 text-ink">
           <AnnouncementBar />
           <Nav />
         </div>
