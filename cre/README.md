@@ -1,6 +1,6 @@
 # The Survey workflow
 
-**C2.** A Chainlink CRE Confidential Workflow. It reads a subject's private Hold inside an AWS
+A Chainlink CRE Confidential Workflow. It reads a subject's private Hold inside an AWS
 Nitro enclave, values it at Chainlink prices after published haircuts, tests it against one
 Line, and emits a boolean that lands onchain as a Mark.
 
@@ -104,7 +104,7 @@ arithmetic:
 
 The Survey **simulates end to end against a real Sepolia `SurveyRequested` transaction and
 returns a real verdict**: trigger decode, the TEE handler, the Vault secret, the ladder over
-HTTP, the Hold read (C3, a wallet balance behind a shared key), the Chainlink price, the
+HTTP, the Hold read (a wallet balance behind a shared key, served by `/api/hold`), the Chainlink price, the
 haircut valuation, the threshold, the report, and `writeReport`. First verified 2026-09-13, then **broadcast**: two real Marks on Sepolia from the same
 0.25 ETH Hold at ETH/USD ≈ $2,520 -
 [ABOVE on $50](https://sepolia.etherscan.io/tx/0x8c9ff398bbe53c86b7202f35a94eab088f20f4b73ef2d4ebab7d9c79973214d8),
@@ -147,8 +147,8 @@ Three things learned on first compile, kept here so nobody relearns them:
 - **Only ETH and BTC are allowlisted**, because `FEEDS` in `src/server/services/price.ts` knows
   only those two pairs. A stablecoin leg needs its Sepolia feed added there first — until then a
   Hold holding USDC returns INDETERMINATE, which is the honest failure but a poor demo.
-- **There is no Hold adapter yet.** The workflow calls `{holdBaseUrl}/hold/{subjectId}`;
-  nothing serves it until C3 is built, so every Survey currently ends INDETERMINATE. The JSON
-  shape in `sources.ts` is the contract C3 must serve.
+- **One Hold source.** `/api/hold/{subjectId}` serves a wallet read behind a shared key. A
+  read-only exchange key is the next source; it slots in beside the wallet read and the JSON
+  shape in `sources.ts` stays the contract.
 - **`holdSecretId` is one ID, not one per subject.** Production templates it as
   `CEX_RO_<subjectId>`; staging uses a single ID so `secrets.yaml` can name it.

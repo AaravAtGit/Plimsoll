@@ -211,18 +211,17 @@ response.
 
 ## Status
 
-| | Component | State |
-| --- | --- | --- |
-| C1 | `PlimsollRegistry` | Deployed. 42 tests. |
-| C2 | Survey workflow (`handlerInTee`) | Simulates end to end; two real Marks posted via `--broadcast`. |
-| C3 | Hold adapter | Wallet read behind a shared key. A read-only exchange source is the next one in. |
-| C4 | API | Live at `plimsol-xi.vercel.app`. |
-| C5 | Bazantic gateways + Recipes | **Live.** Two active gateways; [`underwrite-counterparty`](https://bazantic.com/recipes/underwrite-counterparty) and [`request-mark`](https://bazantic.com/recipes/request-mark) published. |
-| C6 | `CreditDesk` | Deployed. Refuses to lend without Standing. |
-| C8 | Chainlink price service | Live (`/api/price`, `/api/line-for`). |
-| C7 | Demo agent | The published Recipe, invoked as one MCP tool from a bare client with only its inputs: derived the Line, requested a Survey, refused to treat a pending Mark as a yes. See [`docs/evidence/bazantic/`](docs/evidence/bazantic/). |
-| C9 | The Harbour Board | Live at [`/dashboard`](https://plimsol-xi.vercel.app/dashboard): derive a Line, request a Survey, watch the Mark land on the line; ladder, history, Standing, and the boundary audit. Every value fetched. |
-| C10 | A/B clip | Not built. |
+| Component | State |
+| --- | --- |
+| `PlimsollRegistry` | Deployed on Sepolia. 42 tests. |
+| `CreditDesk` | Deployed. Refuses to lend without Standing. |
+| Survey workflow (`handlerInTee`) | Simulates end to end against real request transactions; real Marks posted through the Forwarder. |
+| Hold adapter | A wallet read behind a shared key, enclave-only. A read-only exchange source is the next one in. |
+| API | Live at `plimsol-xi.vercel.app`. |
+| Chainlink price service | Live (`/api/price`, `/api/line-for`). |
+| Bazantic | **Live.** Two active gateways; [`underwrite-counterparty`](https://bazantic.com/recipes/underwrite-counterparty) and [`request-mark`](https://bazantic.com/recipes/request-mark) published. |
+| Demo agent | The published Recipe, invoked as one MCP tool from a bare client with only its inputs: derived the Line, requested a Survey, refused to treat a pending Mark as a yes. See [`docs/evidence/bazantic/`](docs/evidence/bazantic/). |
+| The Harbour Board | Live at [`/dashboard`](https://plimsol-xi.vercel.app/dashboard): derive a Line, request a Survey, watch the Mark land on the line; ladder, history, Standing, and the boundary audit. Every value fetched. |
 
 Two things to say plainly. Confidential Workflows is in private beta; the confidential path is
 what is simulated and submitted, exactly as the track allows, and the same handler registers with
