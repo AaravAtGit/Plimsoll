@@ -12,5 +12,7 @@ export const json = (body: unknown, status = 200) => Response.json(body, {status
 
 export const bad = (error: string, status = 400) => Response.json({error}, {status});
 
-/// Catch-all segments arrive split on "/" - pairs like `ETH/USD` need rejoining.
-export const joinPair = (pair: string[]) => pair.join("/");
+/// Catch-all segments arrive split on "/" - pairs like `ETH/USD` need rejoining. `ETH-USD` is
+/// accepted too: through the Bazantic gateway a path parameter is one segment, so a slash in
+/// the pair can never route, and the hyphen is the spelling agents use.
+export const joinPair = (pair: string[]) => pair.join("/").replace("-", "/");

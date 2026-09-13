@@ -86,8 +86,12 @@ baz whoami --json
 
    | Gateway | Slug | MCP |
    | --- | --- | --- |
-   | `chainlink-price` | `hhpdppbobbchre2dn3xlgv5fyy` | `https://hhpdppbobbchre2dn3xlgv5fyy.bazgateway.com/mcp` |
-   | `plimsoll-survey` | `3ceg4ly6kvabxp7fxeqnjtotpu` | `https://3ceg4ly6kvabxp7fxeqnjtotpu.bazgateway.com/mcp` |
+   | `chainlink-price` | `n5ejlr45ffgexl2vobsk72jv7e` | `https://n5ejlr45ffgexl2vobsk72jv7e.bazgateway.com/mcp` |
+   | `plimsoll-survey` | `5cjqqthpx5db3papttnn5ewt3u` | `https://5cjqqthpx5db3papttnn5ewt3u.bazgateway.com/mcp` |
+
+   (Two earlier registrations, `hhpdppbobbchre2dn3xlgv5fyy` and `3ceg4ly6kvabxp7fxeqnjtotpu`, were created with
+   `--status draft`; the dashboard now has no deploy step for a draft, so both were re-added
+   with `--status active`. Pairs travel as `ETH-USD`: a gateway path parameter is one segment.)
 
 3. **Finish in the dashboard** (`/gateways/new` or the gateway's page): confirm no-auth, set the
    per-method prices - `requestSurvey` is the one that costs us money - and activate.

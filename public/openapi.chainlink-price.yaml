@@ -27,7 +27,8 @@ paths:
           in: path
           required: true
           schema: {type: string}
-          example: ETH/USD
+          description: Pair with a hyphen, e.g. ETH-USD. (A slash cannot travel in one path segment.)
+          example: ETH-USD
       responses:
         "200":
           description: A price quote.
@@ -52,7 +53,8 @@ paths:
           in: path
           required: true
           schema: {type: string}
-          example: ETH/USD
+          description: Pair with a hyphen, e.g. ETH-USD. (A slash cannot travel in one path segment.)
+          example: ETH-USD
         - name: amount
           in: query
           required: true

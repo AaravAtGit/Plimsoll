@@ -37,19 +37,19 @@
   "model": "anthropic/claude-sonnet-4.6",
   "tool_bindings": [
     {
-      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
+      "gateway_slug": "5cjqqthpx5db3papttnn5ewt3u",
       "tool_name": "getLadder"
     },
     {
-      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
+      "gateway_slug": "5cjqqthpx5db3papttnn5ewt3u",
       "tool_name": "requestSurvey"
     },
     {
-      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
+      "gateway_slug": "5cjqqthpx5db3papttnn5ewt3u",
       "tool_name": "getMark"
     },
     {
-      "gateway_slug": "3ceg4ly6kvabxp7fxeqnjtotpu",
+      "gateway_slug": "5cjqqthpx5db3papttnn5ewt3u",
       "tool_name": "hasStanding"
     }
   ]

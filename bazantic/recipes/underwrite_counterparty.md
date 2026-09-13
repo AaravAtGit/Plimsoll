@@ -36,7 +36,7 @@ agent quoting a deal in ETH genuinely needs a price to size a USD credit line.
 1. **Read the deal.** Extract the exposure amount and its denomination — `60`, `ETH` — and the
    settlement term. Get the counterparty's `subjectId`.
 
-2. **Derive the Line.** Call `deriveLine(pair="ETH/USD", amount=60, subjectId=...)`.
+2. **Derive the Line.** Call `deriveLine(pair="ETH-USD", amount=60, subjectId=...)`.
 
    This prices the exposure and selects the lowest registered rung that covers it, in one call,
    so the arithmetic is auditable rather than reconstructed.
