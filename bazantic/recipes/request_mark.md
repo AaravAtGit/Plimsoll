@@ -34,8 +34,9 @@ underwrite, and a Survey costs real money.
    If no rung covers it, stop: the deal is larger than anything this subject consented to be
    asked about. Decline or reduce exposure. Do not ask at a lower rung.
 3. `requestSurvey({subjectId, lineId})` — this is the paid call. You get back a `surveyId`.
-4. `getMark(surveyId)` — poll every ~10s. It returns 202 `pending` while the enclave runs.
-   Give up after 120 seconds and treat the result as INDETERMINATE.
+4. `getMark(surveyId)` — at most three calls. It returns 202 `pending` while the enclave runs.
+   If it is still pending after your third call, stop and return `PENDING` with the `surveyId`
+   and the follow-up ("call getMark with this surveyId in about a minute"). Do not loop.
 
 ## Reading the result
 

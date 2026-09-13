@@ -51,8 +51,11 @@ agent quoting a deal in ETH genuinely needs a price to size a USD credit line.
 3. **Request the Survey.** Call `requestSurvey({subjectId, lineId: line.lineId})`. This is the
    paid call. Keep the returned `surveyId`.
 
-4. **Poll for the Mark.** Call `getMark(surveyId)` every ~10s until it returns 200. Give up after
-   120 seconds and treat the outcome as `INDETERMINATE`.
+4. **Poll for the Mark - at most three times.** Call `getMark(surveyId)`. A 202 `pending` means
+   the enclave is still running. You may call it again at most twice more. If it is still pending
+   after your third call, STOP polling and return a `PENDING` result carrying the `surveyId` and
+   the exact follow-up: "call getMark with this surveyId in about a minute". Do not loop. Do not
+   treat pending as a verdict.
 
 5. **Decide.**
 
@@ -62,6 +65,7 @@ agent quoting a deal in ETH genuinely needs a price to size a USD credit line.
    | `verdict == BELOW` | Decline, or re-quote fully collateralised. |
    | `verdict == INDETERMINATE` | Decline. Not a soft yes. |
    | `expiry` already passed | Do not act. Request a fresh Survey. |
+   | still `pending` after three polls | Return `PENDING` with the `surveyId`. Do not extend terms yet. |
 
    For exposure you would be unhappy to lose, require Standing rather than a single Mark:
    `hasStanding(subjectId, thresholdUsd=line.thresholdUsd, k=3, window=86400)`. Three Surveys
