@@ -121,8 +121,11 @@ baz whoami --json
    baz recipe create recipes/underwrite_counterparty.recipe.json --json
    ```
 
-   Bazantic derives the handle from `name`; you do not choose it. Created 2026-09-13 as drafts:
-   `request-mark` and `underwrite-counterparty`, model `anthropic/claude-sonnet-4.6`.
+   Bazantic derives the handle from `name`; you do not choose it. Created and **published**
+   2026-09-13: `request-mark` and `underwrite-counterparty`, model `anthropic/claude-sonnet-4.6`.
+   Both gateways price every method at $0.01 USDC and settle on **Base** (the 402 body says
+   `network: base`); flip sandbox mode on in the dashboard to settle test USDC on Base Sepolia
+   instead, and create the grant on the same network.
 
 6. **Test in the dashboard, then publish.** A dashboard test run uses Bazantic's own credential
    and costs nothing. The CLI has no test command. Publish locks the definition; unpublish to

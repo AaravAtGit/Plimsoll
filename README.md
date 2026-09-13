@@ -14,6 +14,16 @@ ETHGlobal Hackathon Sponsor APIs**
 
 ## It is running. Check it yourself.
 
+**On Bazantic:** the composed Recipe
+[`underwrite-counterparty`](https://bazantic.com/recipes/underwrite-counterparty) is published,
+bound to two live gateways — `chainlink-price` and `plimsoll-survey`. An agent with
+`baz recipe install` sees it as one tool. Free discovery, no key:
+
+```bash
+curl -s https://api.bazantic.com/v1/recipes/underwrite-counterparty | jq '{handle, input_schema}'
+curl -s -o /dev/null -w '%{http_code}\n' https://n5ejlr45ffgexl2vobsk72jv7e.bazgateway.com/price/ETH-USD   # 402: the price of asking
+```
+
 Two Marks are on Ethereum Sepolia, written by the Survey workflow through the CRE Forwarder from
 real request transactions. Same subject, same Hold, same Chainlink round — opposite verdicts,
 and not one amount in either.
@@ -206,7 +216,7 @@ response.
 | C2 | Survey workflow (`handlerInTee`) | Simulates end to end; two real Marks posted via `--broadcast`. |
 | C3 | Hold adapter | Wallet read behind a shared key. A read-only exchange source is the next one in. |
 | C4 | API | Live at `plimsol-xi.vercel.app`. |
-| C5 | Bazantic gateways + Recipes | Two OpenAPI specs served, two Recipe definitions written; registration in progress. |
+| C5 | Bazantic gateways + Recipes | **Live.** Two active gateways; [`underwrite-counterparty`](https://bazantic.com/recipes/underwrite-counterparty) and [`request-mark`](https://bazantic.com/recipes/request-mark) published. |
 | C6 | `CreditDesk` | Deployed. Refuses to lend without Standing. |
 | C8 | Chainlink price service | Live (`/api/price`, `/api/line-for`). |
 | C7 / C9 / C10 | Demo agents · dashboard · A/B clip | Not built. `baz recipe install` in an MCP client is the demo agent. |
