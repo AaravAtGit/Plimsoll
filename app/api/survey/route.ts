@@ -1,4 +1,4 @@
-import {requestSurvey} from "@/server/services/survey";
+import {explainRequestFailure, requestSurvey} from "@/server/services/survey";
 import {bad, isBytes32, json} from "@/server/http";
 
 export const runtime = "nodejs";
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       202,
     );
   } catch (e) {
-    return bad((e as Error).message, 502);
+    const {message, status} = explainRequestFailure(e);
+    return bad(message, status);
   }
 }

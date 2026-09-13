@@ -31,6 +31,7 @@ type Mark = {
 };
 type Derivation = {quote: Quote; exposureUsd: number; line: Rung | null};
 type Request = {surveyId: `0x${string}`; txHash: string; startedAt: number};
+type Quota = {remaining: number; max: number; windowSeconds: number};
 
 const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
 const usd = (n: number) => n.toLocaleString("en-US", {style: "currency", currency: "USD", maximumFractionDigits: 2});
@@ -84,6 +85,7 @@ export default function HarbourBoard() {
   const price = usePolled<Quote>("/api/price/ETH-USD", POLL_MS);
   const ladder = usePolled<{ladder: Rung[]}>(`/api/ladder/${SUBJECT}`, POLL_MS);
   const marks = usePolled<{marks: Mark[]}>(`/api/marks/${SUBJECT}`, POLL_MS);
+  const quota = usePolled<Quota>(`/api/quota/${SUBJECT}`, POLL_MS);
 
   // ---- the question ---------------------------------------------------------------------
   const [amount, setAmount] = useState("0.03");
@@ -125,6 +127,7 @@ export default function HarbourBoard() {
       setRequestError((e as Error).message);
     } finally {
       setRequesting(false);
+      void quota.refresh();
     }
   };
 
@@ -181,7 +184,7 @@ export default function HarbourBoard() {
             </p>
           </div>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 font-mono text-[13px] tabular-nums md:grid-cols-3">
-            <Instrument label="ETH / USD · Chainlink">
+            <Instrument label="ETH/USD · Chainlink">
               {price.data ? (
                 <>
                   {usd(Number(price.data.price) / 10 ** price.data.decimals)}
@@ -212,6 +215,7 @@ export default function HarbourBoard() {
             </p>
 
             <form
+              aria-busy={deriving}
               className="mt-8 flex flex-wrap items-end gap-3"
               onSubmit={(e) => { e.preventDefault(); void derive(); }}
             >
@@ -280,19 +284,29 @@ export default function HarbourBoard() {
                   )}
 
                   {derivation.line ? (
-                    <div className="mt-6 flex flex-wrap items-center gap-4">
+                    <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
                       <StarBorder className="group">
                         <button
                           onClick={() => void requestSurvey()}
-                          disabled={requesting || (!!request && !landed && !gaveUp) || derivation.quote.stale}
+                          disabled={requesting || (!!request && !landed && !gaveUp) || derivation.quote.stale || quota.data?.remaining === 0}
                           className="label-mono flex items-center gap-2 bg-enclave px-5 py-3 text-paper transition-colors group-hover:text-signal disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {requesting ? <Loader2 size={13} className="animate-spin" /> : null}
                           {requesting ? "Sending the request" : "Request a Survey"}
                         </button>
                       </StarBorder>
-                      <span className="text-xs text-paper/50">
-                        One Sepolia transaction from the gateway. The enclave does the rest.
+                      <span className="font-mono text-[13px] tabular-nums text-paper/60">
+                        {quota.data ? (
+                          <>
+                            <span className={quota.data.remaining === 0 ? "text-signal" : "text-paper"}>{quota.data.remaining}</span>
+                            {" of "}{quota.data.max} asks left this hour
+                          </>
+                        ) : <Dots />}
+                      </span>
+                      <span className="basis-full text-xs leading-relaxed text-paper/50">
+                        {quota.data?.remaining === 0
+                          ? "This gateway has asked this subject as often as the registry allows in one hour. The limit is per counterparty and it is the privacy mechanism: it is what stops anyone walking the ladder. It resets within the hour."
+                          : "One Sepolia transaction from the gateway. The enclave does the rest."}
                       </span>
                     </div>
                   ) : (
@@ -302,7 +316,7 @@ export default function HarbourBoard() {
                       rung is the one thing this protocol exists to prevent.
                     </p>
                   )}
-                  {requestError && <p role="alert" className="mt-3 text-sm text-signal">Request refused: {requestError}</p>}
+                  {requestError && <p role="alert" className="mt-4 max-w-prose text-sm leading-relaxed text-signal">{requestError}</p>}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -388,8 +402,11 @@ export default function HarbourBoard() {
                 <span className="label-mono text-paper/70">{landed ? "Mark landed" : shown ? "Live Mark" : "The line"}</span>
               </span>
               {shown && (
-                <span className="label-mono tabular-nums text-paper/70">
-                  expires in {Math.max(0, shown.expiry - now)}s
+                <span className="flex items-center gap-4 label-mono tabular-nums text-paper/70">
+                  <a className="link" href={`${ETHERSCAN}/address/${REGISTRY}#events`} target="_blank" rel="noreferrer">
+                    on Sepolia <ArrowUpRight size={11} strokeWidth={1.5} className="inline" />
+                  </a>
+                  <span>expires in {Math.max(0, shown.expiry - now)}s</span>
                 </span>
               )}
             </div>
@@ -446,12 +463,12 @@ export default function HarbourBoard() {
             <div className="mt-8 overflow-x-auto">
               <table className="w-full min-w-[560px] border-collapse font-mono text-[13px] tabular-nums">
                 <thead>
-                  <tr className="label-mono border-b border-paper/20 text-left text-paper/55">
+                  <tr className="label-code border-b border-paper/20 text-left text-paper/55">
                     <th className="py-2 pr-4 font-normal">verdict</th>
                     <th className="py-2 pr-4 font-normal">line</th>
                     <th className="py-2 pr-4 font-normal">asOf</th>
                     <th className="py-2 pr-4 font-normal">state</th>
-                    <th className="py-2 font-normal">survey</th>
+                    <th className="py-2 font-normal">surveyId</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -519,18 +536,18 @@ export default function HarbourBoard() {
 
 function Instrument({label, children}: {label: string; children: React.ReactNode}) {
   return (
-    <div>
-      <dt className="label-mono text-paper/45">{label}</dt>
+    <div className="min-w-0">
+      <dt className="label-mono whitespace-nowrap text-paper/45">{label}</dt>
       <dd className="mt-1 text-paper">{children}</dd>
     </div>
   );
 }
 
-function Field({label, mono, children}: {label: string; mono?: boolean; children: React.ReactNode}) {
+function Field({label, children}: {label: string; mono?: boolean; children: React.ReactNode}) {
   return (
     <div>
-      <dt className="label-mono text-paper/45">{label}</dt>
-      <dd className={`mt-1 text-paper ${mono ? "" : ""}`}>{children}</dd>
+      <dt className="label-code text-paper/45">{label}</dt>
+      <dd className="mt-1 text-paper">{children}</dd>
     </div>
   );
 }

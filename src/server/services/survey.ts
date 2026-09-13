@@ -1,6 +1,6 @@
 import {type Address, type Hex, decodeEventLog} from "viem";
 import {publicClient, walletClient} from "@/server/chain";
-import {env} from "@/server/env";
+import {env, gatewayAccount} from "@/server/env";
 import {plimsollRegistryAbi} from "@/server/abi/plimsollRegistry";
 
 /// Bazantic service 2: `plimsoll-survey`.
@@ -69,6 +69,33 @@ export function selectLine(ladder: Line[], exposureUsd1e8: bigint, metricId = 0)
     .filter((l) => l.metricId === metricId && BigInt(l.threshold) >= exposureUsd1e8)
     .sort((a, b) => (BigInt(a.threshold) < BigInt(b.threshold) ? -1 : 1));
   return candidates[0] ?? null;
+}
+
+export type Quota = {requester: Address; remaining: number; max: number; windowSeconds: number};
+
+/// Remaining requests for this gateway about `subjectId` in the current window.
+export async function getQuota(subjectId: Hex): Promise<Quota> {
+  const requester = gatewayAccount().address;
+  const read = <T,>(functionName: "remainingRequests" | "rateMaxRequests" | "rateWindow", args: readonly unknown[] = []) =>
+    publicClient.readContract({address: env.registry, abi: plimsollRegistryAbi, functionName, args} as never) as Promise<T>;
+  const [remaining, max, window] = await Promise.all([
+    read<number>("remainingRequests", [subjectId, requester]),
+    read<number>("rateMaxRequests"),
+    read<bigint>("rateWindow"),
+  ]);
+  return {requester, remaining: Number(remaining), max: Number(max), windowSeconds: Number(window)};
+}
+
+/// Translate a revert into the sentence a caller can act on. The registry's custom errors
+/// arrive inside viem's message; the raw text is a stack trace, not an answer.
+export function explainRequestFailure(e: unknown): {message: string; status: number} {
+  const m = (e as Error).message ?? String(e);
+  if (/RateLimited/.test(m))
+    return {status: 429, message: "Rate limit reached: this gateway has already asked this subject the maximum number of times this hour. The limit is per (subject, requester) and exists to stop anyone walking the ladder. Wait for the window to pass."};
+  if (/LineUnknown/.test(m)) return {status: 400, message: "That rung is not on the subject's ladder."};
+  if (/SubjectUnknown/.test(m)) return {status: 404, message: "Unknown subject: nothing is registered under that id."};
+  if (/insufficient funds/i.test(m)) return {status: 502, message: "The gateway wallet cannot pay gas for the request transaction. Top it up with Sepolia ETH."};
+  return {status: 502, message: `Onchain request failed: ${m.split("\n")[0]}`};
 }
 
 /// Submit the Survey request. Call this only after payment has settled.
